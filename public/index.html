@@ -1,403 +1,1728 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Combined Calendar</title>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Calendar & UGC Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a25;
+    --surface-3: #22222f;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.12);
+    --text: #ececef;
+    --text-secondary: #8888a0;
+    --text-muted: #55556a;
+    --accent: #6366f1;
+    --accent-glow: rgba(99,102,241,0.15);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --yellow: #eab308;
+    --yellow-bg: rgba(234,179,8,0.1);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.1);
+    --orange: #f97316;
+    --orange-bg: rgba(249,115,22,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --purple: #a855f7;
+    --purple-bg: rgba(168,85,247,0.1);
+    --cyan: #06b6d4;
+    --cyan-bg: rgba(6,182,212,0.1);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .header-left h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--green);
+    background: var(--green-bg);
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .last-updated {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .refresh-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .refresh-btn:hover {
+    background: var(--surface-3);
+    color: var(--text);
+    border-color: var(--border-hover);
+  }
+
+  /* Main Layout */
+  .main {
+    padding: 24px 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* Month Tabs */
+  .month-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .month-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .month-tab:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .month-tab.active {
+    color: #fff;
+    background: var(--accent);
+    box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  }
+
+  /* Filter Row */
+  .filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    min-width: 140px;
+  }
+
+  .filter-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2px;
+    margin-left: auto;
+  }
+
+  .view-btn {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .view-btn.active {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .stat-number {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-card.launched .stat-number { color: var(--green); }
+  .stat-card.ready .stat-number { color: var(--blue); }
+  .stat-card.editing .stat-number { color: var(--yellow); }
+  .stat-card.briefing .stat-number { color: var(--purple); }
+  .stat-card.revision .stat-number { color: var(--orange); }
+  .stat-card.content .stat-number { color: var(--red); }
+  .stat-card.total .stat-number { color: var(--text); }
+
+  /* Progress Bar */
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .progress-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .progress-pct {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .progress-bar-track {
+    height: 8px;
+    background: var(--surface-3);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .progress-segment {
+    height: 100%;
+    transition: width 0.6s ease;
+  }
+
+  .progress-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+
+  /* Content Sections */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .panel-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .panel-body {
+    padding: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .panel-body::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .panel-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .panel-body::-webkit-scrollbar-thumb {
+    background: var(--surface-3);
+    border-radius: 2px;
+  }
+
+  /* Person Row */
+  .person-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .person-row:hover {
+    background: var(--surface-2);
+  }
+
+  .person-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .person-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .person-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .person-stats {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .person-stat {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .person-bar-wrap {
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .person-bar-track {
+    height: 6px;
+    background: var(--surface-3);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .person-total {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    width: 40px;
+    flex-shrink: 0;
+  }
+
+  /* Briefs Table */
+  .table-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody tr:hover { background: var(--surface-2); }
+
+  td {
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-launched { background: var(--green-bg); color: var(--green); }
+  .status-launched .status-dot { background: var(--green); }
+  .status-ready { background: var(--blue-bg); color: var(--blue); }
+  .status-ready .status-dot { background: var(--blue); }
+  .status-need-editing { background: var(--yellow-bg); color: var(--yellow); }
+  .status-need-editing .status-dot { background: var(--yellow); }
+  .status-briefing { background: var(--purple-bg); color: var(--purple); }
+  .status-briefing .status-dot { background: var(--purple); }
+  .status-needs-revision { background: var(--orange-bg); color: var(--orange); }
+  .status-needs-revision .status-dot { background: var(--orange); }
+  .status-content-needed { background: var(--red-bg); color: var(--red); }
+  .status-content-needed .status-dot { background: var(--red); }
+
+  .type-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .type-video { background: var(--purple-bg); color: var(--purple); }
+  .type-static { background: var(--cyan-bg); color: var(--cyan); }
+
+  .table-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Weekly breakdown */
+  .weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .week-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .week-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .week-count {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .week-mini-bar {
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 8px;
+  }
+
+  .week-statuses {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .week-stat {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  /* Full width panel */
+  .full-panel {
+    grid-column: 1 / -1;
+  }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--surface-3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .header { padding: 16px 20px; }
+    .main { padding: 16px 20px; }
+    .stats-row { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  }
+
+  /* Section Title */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title .count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Top Nav - Creative Calendar vs UGC Tracker */
+  .top-nav {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .top-nav-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .top-nav-btn:hover { color: var(--text); background: var(--surface-2); }
+
+  .top-nav-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  }
+
+  /* UGC specific */
+  .ugc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+  }
+  .ugc-card:hover { border-color: var(--border-hover); }
+
+  .ugc-brief-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .ugc-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .ugc-meta-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: 500;
+  }
+
+  .ugc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .ugc-creator-link {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .ugc-creator-link:hover { text-decoration: underline; }
+
+  .ugc-status-complete { background: var(--green-bg); color: var(--green); }
+  .ugc-status-needs-revision { background: var(--orange-bg); color: var(--orange); }
+  .ugc-status-in-progress { background: var(--blue-bg); color: var(--blue); }
+  .ugc-status-pending { background: var(--yellow-bg); color: var(--yellow); }
+  .ugc-status-creator-search { background: var(--purple-bg); color: var(--purple); }
+  .ugc-status-creator-chosen { background: var(--cyan-bg); color: var(--cyan); }
+  .ugc-status-strategist-review { background: var(--orange-bg); color: var(--orange); }
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="header-left">
-        <div class="glow-dot"></div>
-        <h1>Combined Calendar</h1>
-      </div>
-      <div class="header-right">
-        <div id="accounts-list"></div>
-        <button id="connect-btn" onclick="connectAccount()">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Add account
-        </button>
-      </div>
-    </header>
-    <div id="calendar"></div>
-  </div>
 
-  <!-- Event detail modal -->
-  <div id="event-popup" class="modal-overlay hidden" onclick="if(event.target===this)closePopup()">
-    <div class="modal">
-      <div class="modal-accent" id="popup-color-bar"></div>
-      <div class="modal-header">
-        <div>
-          <h2 id="popup-title"></h2>
-          <p id="popup-time" class="modal-subtitle"></p>
-        </div>
-        <button class="modal-close" onclick="closePopup()">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M14 4L4 14M4 4l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <!-- RSVP -->
-        <div id="popup-rsvp" class="rsvp-section hidden">
-          <p class="section-label">Going?</p>
-          <div class="rsvp-buttons">
-            <button class="rsvp-btn rsvp-yes" onclick="rsvp('accepted')" id="rsvp-accepted">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Yes
-            </button>
-            <button class="rsvp-btn rsvp-maybe" onclick="rsvp('tentative')" id="rsvp-tentative">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4v5M8 11.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-              Maybe
-            </button>
-            <button class="rsvp-btn rsvp-no" onclick="rsvp('declined')" id="rsvp-declined">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              No
-            </button>
-          </div>
-        </div>
-
-        <!-- Meeting link -->
-        <div id="popup-meeting" class="detail-row hidden">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M13 9l5-3v8l-5-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div>
-            <p class="detail-label" id="popup-meeting-type"></p>
-            <a id="popup-join-link" href="#" target="_blank" class="join-link">Join with Google Meet</a>
-          </div>
-        </div>
-
-        <!-- Location -->
-        <div id="popup-location" class="detail-row hidden">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2c-3.3 0-6 2.5-6 5.7C4 12.5 10 18 10 18s6-5.5 6-10.3C16 4.5 13.3 2 10 2z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
-          </div>
-          <p id="popup-location-text"></p>
-        </div>
-
-        <!-- Account -->
-        <div id="popup-account" class="detail-row">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <p id="popup-account-text"></p>
-        </div>
-
-        <!-- Organizer -->
-        <div id="popup-organizer" class="detail-row hidden">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14.5 3l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z" fill="currentColor"/></svg>
-          </div>
-          <p id="popup-organizer-text"></p>
-        </div>
-
-        <!-- Attendees -->
-        <div id="popup-attendees" class="detail-row attendees-section hidden">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="7" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 18c0-3.3 2.7-6 6-6 1.5 0 2.9.5 4 1.4M11 18c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div class="attendees-wrap">
-            <p class="detail-label" id="popup-attendees-count"></p>
-            <div id="popup-attendees-list" class="attendees-list"></div>
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div id="popup-description" class="detail-row desc-section hidden">
-          <div class="detail-icon">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h10M3 15h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          </div>
-          <div id="popup-description-text" class="desc-content"></div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <a id="popup-link" href="#" target="_blank" class="footer-link">Open in Google Calendar</a>
-        <button id="popup-delete-btn" class="delete-btn" onclick="deleteEvent()">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: -2px; margin-right: 4px;"><path d="M2 4h12M5.3 4V2.7a.7.7 0 01.7-.7h4a.7.7 0 01.7.7V4M6 7v5M10 7v5M3.5 4l.7 9.3a1.5 1.5 0 001.5 1.4h4.6a1.5 1.5 0 001.5-1.4L12.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Delete
-        </button>
-      </div>
+<div class="header">
+  <div class="header-left">
+    <h1>Fleava</h1>
+    <div class="top-nav">
+      <button class="top-nav-btn active" id="navCalendar" onclick="switchSection('calendar')">Creative Calendar</button>
+      <button class="top-nav-btn" id="navUGC" onclick="switchSection('ugc')">UGC Tracker</button>
+    </div>
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Live
     </div>
   </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">Loading...</span>
+    <button class="refresh-btn" onclick="fetchData()">Refresh</button>
+  </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-  <script>
-    let calendar;
-    let currentEvent = null;
+<div class="main" id="app">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div class="loading-text">Connecting to Google Sheet...</div>
+  </div>
+</div>
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const calendarEl = document.getElementById('calendar');
-      calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
-        },
-        height: 'auto',
-        nowIndicator: true,
-        eventDisplay: 'block',
-        dayMaxEvents: 3,
-        events: fetchEvents,
-        eventClick: showEventPopup,
-        viewDidMount: () => {
-          setTimeout(updateStickyOffsets, 50);
-        },
-        loading: (isLoading) => {
-          document.body.classList.toggle('loading', isLoading);
-          if (!isLoading) setTimeout(updateStickyOffsets, 50);
-        },
-      });
-      calendar.render();
-      loadAccounts();
-      updateStickyOffsets();
-      window.addEventListener('resize', updateStickyOffsets);
+<script>
+const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
+const SHEET_TABS = [
+  { gid: '0', label: 'Sep 2025' },
+  { gid: '1961556020', label: 'Oct 2025' },
+  { gid: '209196095', label: 'Nov 2025' },
+  { gid: '1207919965', label: 'Dec 2025' },
+  { gid: '1856363662', label: 'Jan 2026' },
+  { gid: '677415911', label: 'Feb 2026' },
+  { gid: '1813443487', label: 'Mar 2026' },
+];
+const UGC_GID = '1635997307';
+const REFRESH_INTERVAL = 30000; // 30 seconds
+
+let allData = [];
+let ugcData = [];
+let currentSection = 'calendar'; // 'calendar' or 'ugc'
+let currentMonth = null;
+let currentView = 'overview';
+let filterStrategist = 'all';
+let filterEditor = 'all';
+let filterStatus = 'all';
+let ugcFilterStrategist = 'all';
+let ugcFilterStatus = 'all';
+let availableMonths = [];
+
+const STATUS_MAP = {
+  'launched': { label: 'Launched', class: 'launched', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  'ready': { label: 'Ready', class: 'ready', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+  'need editing': { label: 'Need Editing', class: 'need-editing', color: '#eab308', bg: 'rgba(234,179,8,0.1)' },
+  'needs revision': { label: 'Needs Revision', class: 'needs-revision', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+  'breifing': { label: 'Briefing', class: 'briefing', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+  'briefing': { label: 'Briefing', class: 'briefing', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+  'content needed': { label: 'Content Needed', class: 'content-needed', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+};
+
+const AVATAR_COLORS = {
+  'Tysin': '#6366f1',
+  'Nick': '#f59e0b',
+  'Mohamed': '#10b981',
+  'Azlan': '#ec4899',
+  'Rami': '#06b6d4',
+  'Sourav': '#a855f7',
+  'Kashif': '#f97316',
+  'Galih': '#3b82f6',
+  'other': '#64748b',
+};
+
+function parseCSV(csv) {
+  const lines = csv.split('\n');
+  // Find the header row by looking for the line containing "Ad Name"
+  let headerIndex = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('Ad Name')) {
+      headerIndex = i;
+      break;
+    }
+  }
+  const headers = parseCSVLine(lines[headerIndex]);
+  const data = [];
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = parseCSVLine(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => {
+      row[h.trim()] = (values[idx] || '').trim();
+    });
+    if (row['Ad Name']) data.push(row);
+  }
+  return data;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (inQuotes) {
+      if (char === '"' && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = false;
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('/');
+  if (parts.length < 3) return null;
+  let month = parseInt(parts[0]);
+  let day = parseInt(parts[1]);
+  let year = parseInt(parts[2]);
+  if (year < 100) year += 2000;
+  return new Date(year, month - 1, day);
+}
+
+function getMonthKey(date) {
+  if (!date) return null;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMonthLabel(key) {
+  const [year, month] = key.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(month) - 1]} ${year}`;
+}
+
+function getWeekOfMonth(date) {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  return Math.ceil((date.getDate() + firstDay.getDay()) / 7);
+}
+
+function normalizeStatus(status) {
+  if (!status) return '';
+  return status.toLowerCase().trim();
+}
+
+function getStatusInfo(status) {
+  const norm = normalizeStatus(status);
+  return STATUS_MAP[norm] || { label: status || 'Unknown', class: '', color: '#64748b', bg: 'rgba(100,116,139,0.1)' };
+}
+
+function parseUGCCSV(csv) {
+  const lines = csv.split('\n');
+  // UGC headers are in first row: ,Strategist,Brief,CREATOR(S),...
+  const headers = parseCSVLine(lines[0]);
+  // First column is unnamed (date)
+  if (!headers[0] || headers[0].trim() === '') headers[0] = 'Date';
+  const data = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = parseCSVLine(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => {
+      row[h.trim()] = (values[idx] || '').trim();
+    });
+    // Only include rows that have a Brief name
+    if (row['Brief']) data.push(row);
+  }
+  return data;
+}
+
+async function fetchData() {
+  try {
+    // Fetch creative calendar tabs + UGC tracker in parallel
+    const calendarFetches = SHEET_TABS.map(async (tab) => {
+      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      const csv = await response.text();
+      return parseCSV(csv);
     });
 
-    function updateStickyOffsets() {
-      const header = document.querySelector('header');
-      if (!header) return;
-      const headerH = header.offsetHeight;
-      const toolbar = document.querySelector('.fc-toolbar.fc-header-toolbar');
-      if (toolbar) {
-        toolbar.style.top = headerH + 'px';
-      }
-      const toolbarH = toolbar ? toolbar.offsetHeight : 0;
-      const stickyTop = headerH + toolbarH;
-      document.querySelectorAll('.fc-scrollgrid-section-header, .fc-scrollgrid-section-header > *').forEach(el => {
-        el.style.top = stickyTop + 'px';
-      });
+    const ugcFetch = (async () => {
+      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${UGC_GID}&_=${Date.now()}`;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      const csv = await response.text();
+      return parseUGCCSV(csv);
+    })();
+
+    const [calResults, ugcResults] = await Promise.all([
+      Promise.all(calendarFetches),
+      ugcFetch
+    ]);
+
+    allData = calResults.flat();
+    ugcData = ugcResults;
+
+    // Process calendar dates and months
+    allData.forEach(row => {
+      row._date = parseDate(row['Start Date']);
+      row._monthKey = row._date ? getMonthKey(row._date) : null;
+      row._status = normalizeStatus(row['Status']);
+    });
+
+    // Process UGC dates
+    ugcData.forEach(row => {
+      row._date = parseDate(row['Date']);
+      row._status = normalizeStatus(row['STATUS']);
+      row._creatorStatus = (row['CREATOR STATUS'] || '').trim().toLowerCase();
+      row._completionDate = parseDate(row['COMPLETION DATE']);
+    });
+
+    // Get available months
+    const monthSet = new Set();
+    allData.forEach(row => { if (row._monthKey) monthSet.add(row._monthKey); });
+    availableMonths = Array.from(monthSet).sort();
+
+    if (!currentMonth && availableMonths.length > 0) {
+      currentMonth = availableMonths[availableMonths.length - 1];
     }
 
-    async function fetchEvents(info, successCallback, failureCallback) {
-      try {
-        const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
-        const res = await fetch('/api/events?' + params);
-        const events = await res.json();
-        successCallback(events);
-      } catch (err) {
-        failureCallback(err);
-      }
-    }
+    document.getElementById('lastUpdated').textContent =
+      `Updated ${new Date().toLocaleTimeString()}`;
 
-    async function loadAccounts() {
-      try {
-        const res = await fetch('/api/accounts');
-        const accountsList = await res.json();
-        const container = document.getElementById('accounts-list');
-        const colors = ['#1a73e8', '#e67c00', '#0d652d', '#8430ce', '#d93025', '#137333'];
+    render();
+  } catch (err) {
+    console.error('Fetch error:', err);
+    document.getElementById('lastUpdated').textContent = 'Error loading data';
+  }
+}
 
-        if (accountsList.length === 0) {
-          container.innerHTML = '<span class="no-accounts">No accounts connected</span>';
-          return;
-        }
+function getFilteredData() {
+  let data = allData;
+  if (currentMonth && currentMonth !== 'all') {
+    data = data.filter(r => r._monthKey === currentMonth);
+  }
+  if (filterStrategist !== 'all') {
+    data = data.filter(r => r['Creative Strategist'] === filterStrategist);
+  }
+  if (filterEditor !== 'all') {
+    data = data.filter(r => r['Designer/Editor'] === filterEditor);
+  }
+  if (filterStatus !== 'all') {
+    data = data.filter(r => r._status === filterStatus);
+  }
+  return data;
+}
 
-        container.innerHTML = accountsList.map((acc, i) => {
-          const color = colors[i % colors.length];
-          return `
-            <div class="account-chip">
-              <span class="chip-dot" style="background: ${color}"></span>
-              <span class="chip-email">${acc.email}</span>
-              <button class="chip-remove" onclick="disconnectAccount('${acc.email}')" title="Disconnect">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              </button>
+function countByStatus(data) {
+  const counts = {};
+  data.forEach(r => {
+    const s = r._status || 'unknown';
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  return counts;
+}
+
+function countByField(data, field) {
+  const counts = {};
+  data.forEach(r => {
+    const val = r[field] || 'Unassigned';
+    if (!counts[val]) counts[val] = { total: 0, statuses: {} };
+    counts[val].total++;
+    const s = r._status || 'unknown';
+    counts[val].statuses[s] = (counts[val].statuses[s] || 0) + 1;
+  });
+  return counts;
+}
+
+function switchSection(section) {
+  currentSection = section;
+  document.getElementById('navCalendar').classList.toggle('active', section === 'calendar');
+  document.getElementById('navUGC').classList.toggle('active', section === 'ugc');
+  render();
+}
+
+function render() {
+  if (currentSection === 'ugc') {
+    renderUGCDashboard();
+    return;
+  }
+  const data = getFilteredData();
+  const statusCounts = countByStatus(data);
+  const strategists = countByField(data, 'Creative Strategist');
+  const editors = countByField(data, 'Designer/Editor');
+
+  // Collect unique values for filters
+  const allStrategists = [...new Set(allData.map(r => r['Creative Strategist']).filter(Boolean))].sort();
+  const allEditors = [...new Set(allData.map(r => r['Designer/Editor']).filter(Boolean))].sort();
+  const allStatuses = [...new Set(allData.map(r => r._status).filter(Boolean))].sort();
+
+  const total = data.length;
+  const launchedCount = statusCounts['launched'] || 0;
+  const readyCount = statusCounts['ready'] || 0;
+  const editingCount = statusCounts['need editing'] || 0;
+  const briefingCount = (statusCounts['breifing'] || 0) + (statusCounts['briefing'] || 0);
+  const revisionCount = statusCounts['needs revision'] || 0;
+  const contentCount = statusCounts['content needed'] || 0;
+  const completedPct = total > 0 ? Math.round((launchedCount / total) * 100) : 0;
+  const readyPct = total > 0 ? Math.round(((launchedCount + readyCount) / total) * 100) : 0;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <!-- Month Tabs -->
+    <div class="month-tabs">
+      <button class="month-tab ${currentMonth === 'all' ? 'active' : ''}" onclick="setMonth('all')">All</button>
+      ${availableMonths.map(m => `
+        <button class="month-tab ${currentMonth === m ? 'active' : ''}" onclick="setMonth('${m}')">${getMonthLabel(m)}</button>
+      `).join('')}
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <span class="filter-label">Strategist</span>
+        <select class="filter-select" onchange="setFilter('strategist', this.value)">
+          <option value="all" ${filterStrategist === 'all' ? 'selected' : ''}>All Strategists</option>
+          ${allStrategists.map(s => `<option value="${s}" ${filterStrategist === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Editor</span>
+        <select class="filter-select" onchange="setFilter('editor', this.value)">
+          <option value="all" ${filterEditor === 'all' ? 'selected' : ''}>All Editors</option>
+          ${allEditors.map(s => `<option value="${s}" ${filterEditor === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Status</span>
+        <select class="filter-select" onchange="setFilter('status', this.value)">
+          <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>All Statuses</option>
+          ${allStatuses.map(s => `<option value="${s}" ${filterStatus === s ? 'selected' : ''}>${getStatusInfo(s).label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn ${currentView === 'overview' ? 'active' : ''}" onclick="setView('overview')">Overview</button>
+        <button class="view-btn ${currentView === 'table' ? 'active' : ''}" onclick="setView('table')">All Briefs</button>
+        <button class="view-btn ${currentView === 'weekly' ? 'active' : ''}" onclick="setView('weekly')">Weekly</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card total">
+        <div class="stat-number">${total}</div>
+        <div class="stat-label">Total Briefs</div>
+      </div>
+      <div class="stat-card launched">
+        <div class="stat-number">${launchedCount}</div>
+        <div class="stat-label">Launched</div>
+      </div>
+      <div class="stat-card ready">
+        <div class="stat-number">${readyCount}</div>
+        <div class="stat-label">Ready</div>
+      </div>
+      <div class="stat-card editing">
+        <div class="stat-number">${editingCount}</div>
+        <div class="stat-label">Need Editing</div>
+      </div>
+      <div class="stat-card briefing">
+        <div class="stat-number">${briefingCount}</div>
+        <div class="stat-label">Briefing</div>
+      </div>
+      <div class="stat-card revision">
+        <div class="stat-number">${revisionCount}</div>
+        <div class="stat-label">Needs Revision</div>
+      </div>
+      <div class="stat-card content">
+        <div class="stat-number">${contentCount}</div>
+        <div class="stat-label">Content Needed</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <div>
+          <div class="progress-title">Overall Completion</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${launchedCount + readyCount} of ${total} briefs launched or ready</div>
+        </div>
+        <div class="progress-pct">${readyPct}%</div>
+      </div>
+      <div class="progress-bar-track">
+        ${renderProgressSegments(statusCounts, total)}
+      </div>
+      <div class="progress-legend">
+        ${Object.entries(STATUS_MAP).filter(([k]) => k !== 'briefing').map(([key, info]) => `
+          <div class="legend-item">
+            <div class="legend-dot" style="background:${info.color}"></div>
+            ${info.label} (${statusCounts[key] || 0})
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    ${currentView === 'overview' ? renderOverview(strategists, editors, data) : ''}
+    ${currentView === 'table' ? renderTable(data) : ''}
+    ${currentView === 'weekly' ? renderWeekly(data) : ''}
+  `;
+}
+
+function renderProgressSegments(counts, total) {
+  if (total === 0) return '';
+  const order = ['launched', 'ready', 'need editing', 'breifing', 'needs revision', 'content needed'];
+  return order.map(key => {
+    const count = counts[key] || 0;
+    const pct = (count / total) * 100;
+    const info = STATUS_MAP[key];
+    if (!info || pct === 0) return '';
+    return `<div class="progress-segment" style="width:${pct}%;background:${info.color}"></div>`;
+  }).join('');
+}
+
+function renderOverview(strategists, editors, data) {
+  return `
+    <div class="content-grid">
+      <!-- Strategists -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Strategist</div>
+          <div class="panel-count">${Object.keys(strategists).length} people</div>
+        </div>
+        <div class="panel-body">
+          ${renderPeopleList(strategists, 'Creative Strategist')}
+        </div>
+      </div>
+
+      <!-- Editors -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Editor / Designer</div>
+          <div class="panel-count">${Object.keys(editors).length} people</div>
+        </div>
+        <div class="panel-body">
+          ${renderPeopleList(editors, 'Designer/Editor')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Type Breakdown -->
+    <div class="content-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Content Type</div>
+        </div>
+        <div class="panel-body" style="padding:16px">
+          ${renderTypeBreakdown(data)}
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Landing Page</div>
+        </div>
+        <div class="panel-body" style="padding:16px">
+          ${renderLandingPageBreakdown(data)}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent launches -->
+    <div class="section-title">Recently Launched <span class="count">(${data.filter(r => r._status === 'launched').length})</span></div>
+    ${renderTable(data.filter(r => r._status === 'launched'), true)}
+  `;
+}
+
+function renderPeopleList(people, fieldName) {
+  const sorted = Object.entries(people).sort((a, b) => b[1].total - a[1].total);
+  return sorted.map(([name, info]) => {
+    const color = AVATAR_COLORS[name] || '#64748b';
+    const initial = name === 'Unassigned' ? '?' : name[0].toUpperCase();
+    const launched = (info.statuses['launched'] || 0);
+    const ready = (info.statuses['ready'] || 0);
+    const donePct = info.total > 0 ? Math.round(((launched + ready) / info.total) * 100) : 0;
+
+    return `
+      <div class="person-row" onclick="setFilter('${fieldName === 'Creative Strategist' ? 'strategist' : 'editor'}', '${name}');" style="cursor:pointer">
+        <div class="person-avatar" style="background:${color}20;color:${color}">${initial}</div>
+        <div class="person-info">
+          <div class="person-name">${name}</div>
+          <div class="person-stats">
+            ${launched > 0 ? `<span class="person-stat" style="background:var(--green-bg);color:var(--green)">${launched} launched</span>` : ''}
+            ${ready > 0 ? `<span class="person-stat" style="background:var(--blue-bg);color:var(--blue)">${ready} ready</span>` : ''}
+            <span class="person-stat" style="background:var(--surface-3);color:var(--text-muted)">${info.total} total</span>
+          </div>
+        </div>
+        <div class="person-bar-wrap">
+          <div class="person-bar-track">
+            ${Object.entries(info.statuses).map(([status, count]) => {
+              const si = STATUS_MAP[status];
+              if (!si) return '';
+              const pct = (count / info.total) * 100;
+              return `<div style="width:${pct}%;height:100%;background:${si.color}"></div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="person-total">${donePct}%</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTypeBreakdown(data) {
+  const types = {};
+  data.forEach(r => {
+    const t = r['Type'] || 'Unknown';
+    if (!types[t]) types[t] = 0;
+    types[t]++;
+  });
+
+  return Object.entries(types).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
+    const pct = data.length > 0 ? Math.round((count / data.length) * 100) : 0;
+    const isVideo = type.toLowerCase() === 'video';
+    return `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span class="type-badge ${isVideo ? 'type-video' : 'type-static'}">${type}</span>
+        <div style="flex:1;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${isVideo ? 'var(--purple)' : 'var(--cyan)'};border-radius:3px"></div>
+        </div>
+        <span style="font-size:13px;font-weight:600;width:60px;text-align:right">${count} <span style="color:var(--text-muted);font-weight:400">(${pct}%)</span></span>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLandingPageBreakdown(data) {
+  const pages = {};
+  data.forEach(r => {
+    const p = r['Landing Page'] || 'Unknown';
+    if (!pages[p]) pages[p] = 0;
+    pages[p]++;
+  });
+
+  return Object.entries(pages).sort((a, b) => b[1] - a[1]).map(([page, count]) => {
+    const pct = data.length > 0 ? Math.round((count / data.length) * 100) : 0;
+    return `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-size:12px;font-weight:600;min-width:80px;color:var(--text-secondary)">${page}</span>
+        <div style="flex:1;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:var(--accent);border-radius:3px"></div>
+        </div>
+        <span style="font-size:13px;font-weight:600;width:60px;text-align:right">${count} <span style="color:var(--text-muted);font-weight:400">(${pct}%)</span></span>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTable(data, compact = false) {
+  const sorted = [...data].sort((a, b) => {
+    if (!a._date) return 1;
+    if (!b._date) return -1;
+    return b._date - a._date;
+  });
+
+  const rows = compact ? sorted.slice(0, 20) : sorted;
+
+  return `
+    <div class="table-section">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Ad Name</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Strategist</th>
+              <th>Editor</th>
+              <th>Landing Page</th>
+              <th>Brief</th>
+              <th>Date Launched</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => {
+              const si = getStatusInfo(r['Status']);
+              const isVideo = (r['Type'] || '').toLowerCase() === 'video';
+              return `
+                <tr>
+                  <td>${r['Start Date'] || '-'}</td>
+                  <td style="font-weight:600">${r['Ad Name'] || '-'}</td>
+                  <td><span class="type-badge ${isVideo ? 'type-video' : 'type-static'}">${r['Type'] || '-'}</span></td>
+                  <td><span class="status-badge status-${si.class}"><span class="status-dot"></span>${si.label}</span></td>
+                  <td>${r['Creative Strategist'] || '-'}</td>
+                  <td>${r['Designer/Editor'] || '-'}</td>
+                  <td>${r['Landing Page'] || '-'}</td>
+                  <td>${r['Breif Link'] ? `<span style="color:var(--accent);font-size:12px">${r['Breif Link']}</span>` : '-'}</td>
+                  <td>${r['Date Launched'] || '-'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>Showing ${rows.length} of ${data.length} briefs</span>
+        ${compact && data.length > 20 ? `<button class="refresh-btn" onclick="setView('table')">View All</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderWeekly(data) {
+  // Group by week
+  const weeks = {};
+  data.forEach(r => {
+    if (!r._date) return;
+    const weekNum = getWeekOfMonth(r._date);
+    const monthLabel = getMonthLabel(r._monthKey);
+    const key = `${r._monthKey}-W${weekNum}`;
+    const label = `${monthLabel} - Week ${weekNum}`;
+    if (!weeks[key]) weeks[key] = { label, briefs: [], statuses: {} };
+    weeks[key].briefs.push(r);
+    const s = r._status || 'unknown';
+    weeks[key].statuses[s] = (weeks[key].statuses[s] || 0) + 1;
+  });
+
+  const sorted = Object.entries(weeks).sort((a, b) => a[0].localeCompare(b[0]));
+
+  return `
+    <div class="weekly-grid">
+      ${sorted.map(([key, week]) => {
+        const total = week.briefs.length;
+        return `
+          <div class="week-card">
+            <div class="week-label">${week.label}</div>
+            <div class="week-count">${total}</div>
+            <div class="week-mini-bar">
+              ${Object.entries(week.statuses).map(([status, count]) => {
+                const si = STATUS_MAP[status];
+                if (!si) return '';
+                const pct = (count / total) * 100;
+                return `<div style="width:${pct}%;height:100%;background:${si.color}"></div>`;
+              }).join('')}
             </div>
-          `;
-        }).join('');
-      } catch (err) {
-        console.error('Failed to load accounts:', err);
-      }
-    }
+            <div class="week-statuses">
+              ${Object.entries(week.statuses).map(([status, count]) => {
+                const si = getStatusInfo(status);
+                return `<span class="week-stat" style="color:${si.color}">${count} ${si.label}</span>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ${renderTable(data)}
+  `;
+}
 
-    function connectAccount() {
-      window.open('/auth/connect', '_blank', 'width=500,height=700');
-      const poll = setInterval(async () => {
-        const before = document.querySelectorAll('.account-chip').length;
-        await loadAccounts();
-        const after = document.querySelectorAll('.account-chip').length;
-        if (after > before) {
-          clearInterval(poll);
-          calendar.refetchEvents();
-        }
-      }, 2000);
-      setTimeout(() => clearInterval(poll), 120000);
-    }
+function setMonth(month) {
+  currentMonth = month;
+  filterStrategist = 'all';
+  filterEditor = 'all';
+  filterStatus = 'all';
+  render();
+}
 
-    async function disconnectAccount(email) {
-      if (!confirm(`Disconnect ${email}?`)) return;
-      try {
-        await fetch('/api/accounts/' + encodeURIComponent(email), { method: 'DELETE' });
-        await loadAccounts();
-        calendar.refetchEvents();
-      } catch (err) {
-        console.error('Failed to disconnect:', err);
-      }
-    }
+function setFilter(type, value) {
+  if (type === 'strategist') filterStrategist = value;
+  if (type === 'editor') filterEditor = value;
+  if (type === 'status') filterStatus = value;
+  render();
+}
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+function setView(view) {
+  currentView = view;
+  render();
+}
 
-    function showEventPopup(info) {
-      const event = info.event;
-      const props = event.extendedProps;
-      currentEvent = { id: event.id, account: props.account, title: event.title };
+// ============= UGC TRACKER =============
 
-      document.getElementById('popup-color-bar').style.background = event.backgroundColor;
-      document.getElementById('popup-title').textContent = event.title;
+const UGC_STATUS_MAP = {
+  'complete': { label: 'Complete', class: 'ugc-status-complete', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  'needs revision': { label: 'Needs Revision', class: 'ugc-status-needs-revision', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+};
 
-      // Time
-      const timeEl = document.getElementById('popup-time');
-      if (event.allDay) {
-        const d = event.start.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-        timeEl.textContent = d;
-      } else {
-        const dayOpts = { weekday: 'long', month: 'long', day: 'numeric' };
-        const timeOpts = { hour: 'numeric', minute: '2-digit' };
-        const dayStr = event.start.toLocaleDateString([], dayOpts);
-        const startTime = event.start.toLocaleTimeString([], timeOpts);
-        const endTime = event.end ? event.end.toLocaleTimeString([], timeOpts) : '';
-        timeEl.textContent = endTime ? `${dayStr} · ${startTime} – ${endTime}` : `${dayStr} · ${startTime}`;
-      }
+const CREATOR_STATUS_MAP = {
+  'creator chosen': { label: 'Creator Chosen', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)' },
+  'creator search': { label: 'Creator Search', color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+  'strategist review': { label: 'Strategist Review', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+};
 
-      // RSVP
-      const rsvpSection = document.getElementById('popup-rsvp');
-      if (props.myStatus && props.myStatus !== 'owner') {
-        rsvpSection.classList.remove('hidden');
-        document.querySelectorAll('.rsvp-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById('rsvp-' + props.myStatus);
-        if (activeBtn) activeBtn.classList.add('active');
-      } else {
-        rsvpSection.classList.add('hidden');
-      }
+function getUGCStatusInfo(status) {
+  const norm = (status || '').toLowerCase().trim();
+  return UGC_STATUS_MAP[norm] || { label: status || 'In Progress', class: 'ugc-status-in-progress', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' };
+}
 
-      // Meeting
-      const meetingEl = document.getElementById('popup-meeting');
-      if (props.meetingLink) {
-        document.getElementById('popup-meeting-type').textContent = props.meetingType || 'Video call';
-        document.getElementById('popup-join-link').href = props.meetingLink;
-        document.getElementById('popup-join-link').textContent = props.meetingType ? `Join with ${props.meetingType}` : 'Join meeting';
-        meetingEl.classList.remove('hidden');
-      } else {
-        meetingEl.classList.add('hidden');
-      }
+function getCreatorStatusInfo(status) {
+  const norm = (status || '').toLowerCase().trim();
+  return CREATOR_STATUS_MAP[norm] || { label: status || 'Unknown', color: '#64748b', bg: 'rgba(100,116,139,0.1)' };
+}
 
-      // Location
-      const locEl = document.getElementById('popup-location');
-      if (props.location) {
-        document.getElementById('popup-location-text').textContent = props.location;
-        locEl.classList.remove('hidden');
-      } else {
-        locEl.classList.add('hidden');
-      }
+function getFilteredUGC() {
+  let data = ugcData;
+  if (ugcFilterStrategist !== 'all') {
+    data = data.filter(r => r['Strategist'] === ugcFilterStrategist);
+  }
+  if (ugcFilterStatus !== 'all') {
+    data = data.filter(r => r._status === ugcFilterStatus || r._creatorStatus === ugcFilterStatus);
+  }
+  return data;
+}
 
-      // Account
-      document.getElementById('popup-account-text').textContent = props.account;
+function renderUGCDashboard() {
+  const data = getFilteredUGC();
+  const total = data.length;
+  const complete = data.filter(r => r._status === 'complete').length;
+  const needsRevision = data.filter(r => r._status === 'needs revision').length;
+  const creatorChosen = data.filter(r => r._creatorStatus === 'creator chosen').length;
+  const creatorSearch = data.filter(r => r._creatorStatus === 'creator search').length;
+  const stratReview = data.filter(r => r._creatorStatus === 'strategist review').length;
+  const inProgress = total - complete - needsRevision;
+  const hasContent = data.filter(r => r['CONTENT LINK(S)'] && r['CONTENT LINK(S)'].trim() !== '').length;
+  const completionPct = total > 0 ? Math.round((complete / total) * 100) : 0;
 
-      // Organizer
-      const orgEl = document.getElementById('popup-organizer');
-      if (props.organizer) {
-        document.getElementById('popup-organizer-text').textContent = props.organizer;
-        orgEl.classList.remove('hidden');
-      } else {
-        orgEl.classList.add('hidden');
-      }
+  // Unique strategists
+  const allUGCStrategists = [...new Set(ugcData.map(r => r['Strategist']).filter(Boolean))].sort();
+  const allUGCStatuses = [...new Set([
+    ...ugcData.map(r => r._status).filter(Boolean),
+    ...ugcData.map(r => r._creatorStatus).filter(Boolean)
+  ])].sort();
 
-      // Attendees
-      const attEl = document.getElementById('popup-attendees');
-      if (props.attendees && props.attendees.length > 0) {
-        const count = props.attendees.length;
-        const yesCount = props.attendees.filter(a => a.status === 'accepted').length;
-        document.getElementById('popup-attendees-count').textContent = `${count} guest${count !== 1 ? 's' : ''} · ${yesCount} yes`;
+  // By strategist breakdown
+  const byStrategist = {};
+  data.forEach(r => {
+    const s = r['Strategist'] || 'Unassigned';
+    if (!byStrategist[s]) byStrategist[s] = { total: 0, complete: 0, revision: 0, inProgress: 0 };
+    byStrategist[s].total++;
+    if (r._status === 'complete') byStrategist[s].complete++;
+    else if (r._status === 'needs revision') byStrategist[s].revision++;
+    else byStrategist[s].inProgress++;
+  });
 
-        const statusDots = {
-          accepted: '<span class="status-dot dot-accepted"></span>',
-          declined: '<span class="status-dot dot-declined"></span>',
-          tentative: '<span class="status-dot dot-tentative"></span>',
-          needsAction: '<span class="status-dot dot-pending"></span>',
-        };
-        document.getElementById('popup-attendees-list').innerHTML = props.attendees.map(a => {
-          const dot = statusDots[a.status] || statusDots.needsAction;
-          const tag = a.organizer ? '<span class="org-tag">organizer</span>' : '';
-          return `<div class="attendee-row">${dot} <span>${escapeHtml(a.name)}</span> ${tag}</div>`;
-        }).join('');
-        attEl.classList.remove('hidden');
-      } else {
-        attEl.classList.add('hidden');
-      }
+  // Calculate avg LAG for completed items
+  const lagValues = data.filter(r => r['LAG'] && !isNaN(parseInt(r['LAG']))).map(r => parseInt(r['LAG']));
+  const avgLag = lagValues.length > 0 ? Math.round(lagValues.reduce((a, b) => a + b, 0) / lagValues.length) : 0;
 
-      // Description
-      const descEl = document.getElementById('popup-description');
-      if (props.description) {
-        const sanitized = props.description
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-          .replace(/on\w+="[^"]*"/gi, '');
-        document.getElementById('popup-description-text').innerHTML = sanitized;
-        descEl.classList.remove('hidden');
-      } else {
-        descEl.classList.add('hidden');
-      }
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <!-- Filters -->
+    <div class="filters" style="margin-top:4px">
+      <div class="filter-group">
+        <span class="filter-label">Strategist</span>
+        <select class="filter-select" onchange="ugcFilterStrategist=this.value;render()">
+          <option value="all" ${ugcFilterStrategist === 'all' ? 'selected' : ''}>All Strategists</option>
+          ${allUGCStrategists.map(s => `<option value="${s}" ${ugcFilterStrategist === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Status</span>
+        <select class="filter-select" onchange="ugcFilterStatus=this.value;render()">
+          <option value="all" ${ugcFilterStatus === 'all' ? 'selected' : ''}>All Statuses</option>
+          ${allUGCStatuses.map(s => `<option value="${s}" ${ugcFilterStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
 
-      document.getElementById('popup-link').href = props.htmlLink || '#';
-      document.getElementById('event-popup').classList.remove('hidden');
-    }
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card total">
+        <div class="stat-number">${total}</div>
+        <div class="stat-label">Total Briefs</div>
+      </div>
+      <div class="stat-card launched">
+        <div class="stat-number">${complete}</div>
+        <div class="stat-label">Complete</div>
+      </div>
+      <div class="stat-card revision">
+        <div class="stat-number">${needsRevision}</div>
+        <div class="stat-label">Needs Revision</div>
+      </div>
+      <div class="stat-card editing">
+        <div class="stat-number">${inProgress}</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card ready">
+        <div class="stat-number">${hasContent}</div>
+        <div class="stat-label">Content Delivered</div>
+      </div>
+      <div class="stat-card briefing">
+        <div class="stat-number">${avgLag > 0 ? avgLag + 'd' : '-'}</div>
+        <div class="stat-label">Avg Turnaround</div>
+      </div>
+    </div>
 
-    function closePopup() {
-      document.getElementById('event-popup').classList.add('hidden');
-      currentEvent = null;
-    }
+    <!-- Progress -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <div>
+          <div class="progress-title">UGC Completion Rate</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${complete} of ${total} briefs complete</div>
+        </div>
+        <div class="progress-pct">${completionPct}%</div>
+      </div>
+      <div class="progress-bar-track">
+        ${total > 0 ? `
+          <div class="progress-segment" style="width:${(complete/total)*100}%;background:#22c55e"></div>
+          <div class="progress-segment" style="width:${(needsRevision/total)*100}%;background:#f97316"></div>
+          <div class="progress-segment" style="width:${(inProgress/total)*100}%;background:#3b82f6"></div>
+        ` : ''}
+      </div>
+      <div class="progress-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Complete (${complete})</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div> Needs Revision (${needsRevision})</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> In Progress (${inProgress})</div>
+      </div>
+    </div>
 
-    async function rsvp(status) {
-      if (!currentEvent) return;
-      const btns = document.querySelectorAll('.rsvp-btn');
-      btns.forEach(b => { b.disabled = true; b.classList.remove('active'); });
-      const activeBtn = document.getElementById('rsvp-' + status);
-      if (activeBtn) activeBtn.classList.add('active');
+    <!-- Creator Status Overview -->
+    <div class="content-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Creator Pipeline</div>
+        </div>
+        <div class="panel-body" style="padding:16px">
+          ${renderCreatorPipeline(creatorChosen, creatorSearch, stratReview, total)}
+        </div>
+      </div>
 
-      try {
-        const res = await fetch(`/api/events/${currentEvent.id}/rsvp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ account: currentEvent.account, status }),
-        });
-        if (!res.ok) throw new Error('RSVP failed');
-        calendar.refetchEvents();
-      } catch (err) {
-        alert('Failed to update RSVP.');
-      } finally {
-        btns.forEach(b => b.disabled = false);
-      }
-    }
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Strategist</div>
+          <div class="panel-count">${Object.keys(byStrategist).length} people</div>
+        </div>
+        <div class="panel-body">
+          ${renderUGCStrategists(byStrategist)}
+        </div>
+      </div>
+    </div>
 
-    async function deleteEvent() {
-      if (!currentEvent) return;
-      if (!confirm(`Delete "${currentEvent.title}"?`)) return;
+    <!-- Full Table -->
+    <div class="section-title">All UGC Briefs <span class="count">(${data.length})</span></div>
+    ${renderUGCTable(data)}
+  `;
+}
 
-      try {
-        const res = await fetch(`/api/events/${currentEvent.id}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ account: currentEvent.account }),
-        });
-        if (!res.ok) throw new Error('Delete failed');
-        closePopup();
-        calendar.refetchEvents();
-      } catch (err) {
-        alert('Failed to delete event. You may not have permission.');
-      }
-    }
+function renderCreatorPipeline(chosen, search, review, total) {
+  const items = [
+    { label: 'Creator Chosen', count: chosen, color: '#06b6d4' },
+    { label: 'Creator Search', count: search, color: '#a855f7' },
+    { label: 'Strategist Review', count: review, color: '#f97316' },
+  ];
+  return items.map(item => {
+    const pct = total > 0 ? Math.round((item.count / total) * 100) : 0;
+    return `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <span style="font-size:12px;font-weight:600;min-width:120px;color:${item.color}">${item.label}</span>
+        <div style="flex:1;height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${item.color};border-radius:3px"></div>
+        </div>
+        <span style="font-size:13px;font-weight:600;width:60px;text-align:right">${item.count} <span style="color:var(--text-muted);font-weight:400">(${pct}%)</span></span>
+      </div>
+    `;
+  }).join('');
+}
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePopup();
-    });
-  </script>
+function renderUGCStrategists(byStrategist) {
+  const sorted = Object.entries(byStrategist).sort((a, b) => b[1].total - a[1].total);
+  return sorted.map(([name, info]) => {
+    const color = AVATAR_COLORS[name] || AVATAR_COLORS['other'];
+    const initial = name === 'Unassigned' ? '?' : name[0].toUpperCase();
+    const donePct = info.total > 0 ? Math.round((info.complete / info.total) * 100) : 0;
+
+    return `
+      <div class="person-row" onclick="ugcFilterStrategist='${name}';render();" style="cursor:pointer">
+        <div class="person-avatar" style="background:${color}20;color:${color}">${initial}</div>
+        <div class="person-info">
+          <div class="person-name">${name}</div>
+          <div class="person-stats">
+            ${info.complete > 0 ? `<span class="person-stat" style="background:var(--green-bg);color:var(--green)">${info.complete} done</span>` : ''}
+            ${info.revision > 0 ? `<span class="person-stat" style="background:var(--orange-bg);color:var(--orange)">${info.revision} revision</span>` : ''}
+            <span class="person-stat" style="background:var(--surface-3);color:var(--text-muted)">${info.total} total</span>
+          </div>
+        </div>
+        <div class="person-bar-wrap">
+          <div class="person-bar-track">
+            <div style="width:${(info.complete/info.total)*100}%;height:100%;background:#22c55e"></div>
+            <div style="width:${(info.revision/info.total)*100}%;height:100%;background:#f97316"></div>
+            <div style="width:${(info.inProgress/info.total)*100}%;height:100%;background:#3b82f6"></div>
+          </div>
+        </div>
+        <div class="person-total">${donePct}%</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderUGCTable(data) {
+  const sorted = [...data].sort((a, b) => {
+    if (!a._date && !b._date) return 0;
+    if (!a._date) return 1;
+    if (!b._date) return -1;
+    return b._date - a._date;
+  });
+
+  return `
+    <div class="table-section">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Brief</th>
+              <th>Strategist</th>
+              <th>Creator Status</th>
+              <th>Creator Selected</th>
+              <th>Status</th>
+              <th>Content</th>
+              <th>Completion</th>
+              <th>LAG</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sorted.map(r => {
+              const statusInfo = getUGCStatusInfo(r['STATUS']);
+              const creatorInfo = getCreatorStatusInfo(r['CREATOR STATUS']);
+              const hasContentLink = r['CONTENT LINK(S)'] && r['CONTENT LINK(S)'].trim();
+              const creatorSelected = r['CREATOR(S) SELECTED'] || '';
+
+              return `
+                <tr>
+                  <td>${r['Date'] || '-'}</td>
+                  <td style="font-weight:600">${r['Brief'] || '-'}</td>
+                  <td>${r['Strategist'] || '-'}</td>
+                  <td><span class="status-badge" style="background:${creatorInfo.bg};color:${creatorInfo.color}"><span class="status-dot" style="background:${creatorInfo.color}"></span>${creatorInfo.label}</span></td>
+                  <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${creatorSelected ? `<a href="${creatorSelected}" target="_blank" class="ugc-creator-link">${truncateUrl(creatorSelected)}</a>` : '-'}</td>
+                  <td><span class="status-badge" style="background:${statusInfo.bg};color:${statusInfo.color}"><span class="status-dot" style="background:${statusInfo.color}"></span>${statusInfo.label}</span></td>
+                  <td>${hasContentLink ? '<span style="color:var(--green);font-size:12px;font-weight:600">Delivered</span>' : '<span style="color:var(--text-muted);font-size:12px">Pending</span>'}</td>
+                  <td>${r['COMPLETION DATE'] || '-'}</td>
+                  <td>${r['LAG'] ? r['LAG'] + 'd' : '-'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <span>Showing ${sorted.length} briefs</span>
+      </div>
+    </div>
+  `;
+}
+
+function truncateUrl(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(url.trim());
+    return u.hostname + u.pathname.substring(0, 30) + (u.pathname.length > 30 ? '...' : '');
+  } catch {
+    return url.length > 40 ? url.substring(0, 40) + '...' : url;
+  }
+}
+
+// Initial load and auto-refresh
+fetchData();
+setInterval(fetchData, REFRESH_INTERVAL);
+</script>
 </body>
 </html>

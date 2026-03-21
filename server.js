@@ -51,7 +51,7 @@ function getAuthClient(req, email) {
   return oauth2Client;
 }
 
-// Serve static files
+// Serve static files (index.html is now the creative dashboard)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Get connected accounts
