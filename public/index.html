@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Combined Calendar</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="header-left">
+        <div class="glow-dot"></div>
+        <h1>Combined Calendar</h1>
+      </div>
+      <div class="header-right">
+        <div id="accounts-list"></div>
+        <button id="connect-btn" onclick="connectAccount()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Add account
+        </button>
+      </div>
+    </header>
+    <div id="calendar"></div>
+  </div>
+
+  <!-- Event detail modal -->
+  <div id="event-popup" class="modal-overlay hidden" onclick="if(event.target===this)closePopup()">
+    <div class="modal">
+      <div class="modal-accent" id="popup-color-bar"></div>
+      <div class="modal-header">
+        <div>
+          <h2 id="popup-title"></h2>
+          <p id="popup-time" class="modal-subtitle"></p>
+        </div>
+        <button class="modal-close" onclick="closePopup()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M14 4L4 14M4 4l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- RSVP -->
+        <div id="popup-rsvp" class="rsvp-section hidden">
+          <p class="section-label">Going?</p>
+          <div class="rsvp-buttons">
+            <button class="rsvp-btn rsvp-yes" onclick="rsvp('accepted')" id="rsvp-accepted">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Yes
+            </button>
+            <button class="rsvp-btn rsvp-maybe" onclick="rsvp('tentative')" id="rsvp-tentative">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 4v5M8 11.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Maybe
+            </button>
+            <button class="rsvp-btn rsvp-no" onclick="rsvp('declined')" id="rsvp-declined">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              No
+            </button>
+          </div>
+        </div>
+
+        <!-- Meeting link -->
+        <div id="popup-meeting" class="detail-row hidden">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M13 9l5-3v8l-5-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <p class="detail-label" id="popup-meeting-type"></p>
+            <a id="popup-join-link" href="#" target="_blank" class="join-link">Join with Google Meet</a>
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div id="popup-location" class="detail-row hidden">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2c-3.3 0-6 2.5-6 5.7C4 12.5 10 18 10 18s6-5.5 6-10.3C16 4.5 13.3 2 10 2z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <p id="popup-location-text"></p>
+        </div>
+
+        <!-- Account -->
+        <div id="popup-account" class="detail-row">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <p id="popup-account-text"></p>
+        </div>
+
+        <!-- Organizer -->
+        <div id="popup-organizer" class="detail-row hidden">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14.5 3l.7 1.4 1.5.2-1.1 1.1.3 1.5-1.4-.7-1.4.7.3-1.5-1.1-1.1 1.5-.2z" fill="currentColor"/></svg>
+          </div>
+          <p id="popup-organizer-text"></p>
+        </div>
+
+        <!-- Attendees -->
+        <div id="popup-attendees" class="detail-row attendees-section hidden">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="7" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M1 18c0-3.3 2.7-6 6-6 1.5 0 2.9.5 4 1.4M11 18c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="attendees-wrap">
+            <p class="detail-label" id="popup-attendees-count"></p>
+            <div id="popup-attendees-list" class="attendees-list"></div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div id="popup-description" class="detail-row desc-section hidden">
+          <div class="detail-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h10M3 15h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div id="popup-description-text" class="desc-content"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <a id="popup-link" href="#" target="_blank" class="footer-link">Open in Google Calendar</a>
+        <button id="popup-delete-btn" class="delete-btn" onclick="deleteEvent()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: -2px; margin-right: 4px;"><path d="M2 4h12M5.3 4V2.7a.7.7 0 01.7-.7h4a.7.7 0 01.7.7V4M6 7v5M10 7v5M3.5 4l.7 9.3a1.5 1.5 0 001.5 1.4h4.6a1.5 1.5 0 001.5-1.4L12.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script>
+    let calendar;
+    let currentEvent = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+        },
+        height: 'auto',
+        nowIndicator: true,
+        eventDisplay: 'block',
+        dayMaxEvents: 3,
+        events: fetchEvents,
+        eventClick: showEventPopup,
+        viewDidMount: () => {
+          setTimeout(updateStickyOffsets, 50);
+        },
+        loading: (isLoading) => {
+          document.body.classList.toggle('loading', isLoading);
+          if (!isLoading) setTimeout(updateStickyOffsets, 50);
+        },
+      });
+      calendar.render();
+      loadAccounts();
+      updateStickyOffsets();
+      window.addEventListener('resize', updateStickyOffsets);
+    });
+
+    function updateStickyOffsets() {
+      const header = document.querySelector('header');
+      if (!header) return;
+      const headerH = header.offsetHeight;
+      const toolbar = document.querySelector('.fc-toolbar.fc-header-toolbar');
+      if (toolbar) {
+        toolbar.style.top = headerH + 'px';
+      }
+      const toolbarH = toolbar ? toolbar.offsetHeight : 0;
+      const stickyTop = headerH + toolbarH;
+      document.querySelectorAll('.fc-scrollgrid-section-header, .fc-scrollgrid-section-header > *').forEach(el => {
+        el.style.top = stickyTop + 'px';
+      });
+    }
+
+    async function fetchEvents(info, successCallback, failureCallback) {
+      try {
+        const params = new URLSearchParams({ start: info.startStr, end: info.endStr });
+        const res = await fetch('/api/events?' + params);
+        const events = await res.json();
+        successCallback(events);
+      } catch (err) {
+        failureCallback(err);
+      }
+    }
+
+    async function loadAccounts() {
+      try {
+        const res = await fetch('/api/accounts');
+        const accountsList = await res.json();
+        const container = document.getElementById('accounts-list');
+        const colors = ['#1a73e8', '#e67c00', '#0d652d', '#8430ce', '#d93025', '#137333'];
+
+        if (accountsList.length === 0) {
+          container.innerHTML = '<span class="no-accounts">No accounts connected</span>';
+          return;
+        }
+
+        container.innerHTML = accountsList.map((acc, i) => {
+          const color = colors[i % colors.length];
+          return `
+            <div class="account-chip">
+              <span class="chip-dot" style="background: ${color}"></span>
+              <span class="chip-email">${acc.email}</span>
+              <button class="chip-remove" onclick="disconnectAccount('${acc.email}')" title="Disconnect">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to load accounts:', err);
+      }
+    }
+
+    function connectAccount() {
+      window.open('/auth/connect', '_blank', 'width=500,height=700');
+      const poll = setInterval(async () => {
+        const before = document.querySelectorAll('.account-chip').length;
+        await loadAccounts();
+        const after = document.querySelectorAll('.account-chip').length;
+        if (after > before) {
+          clearInterval(poll);
+          calendar.refetchEvents();
+        }
+      }, 2000);
+      setTimeout(() => clearInterval(poll), 120000);
+    }
+
+    async function disconnectAccount(email) {
+      if (!confirm(`Disconnect ${email}?`)) return;
+      try {
+        await fetch('/api/accounts/' + encodeURIComponent(email), { method: 'DELETE' });
+        await loadAccounts();
+        calendar.refetchEvents();
+      } catch (err) {
+        console.error('Failed to disconnect:', err);
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function showEventPopup(info) {
+      const event = info.event;
+      const props = event.extendedProps;
+      currentEvent = { id: event.id, account: props.account, title: event.title };
+
+      document.getElementById('popup-color-bar').style.background = event.backgroundColor;
+      document.getElementById('popup-title').textContent = event.title;
+
+      // Time
+      const timeEl = document.getElementById('popup-time');
+      if (event.allDay) {
+        const d = event.start.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+        timeEl.textContent = d;
+      } else {
+        const dayOpts = { weekday: 'long', month: 'long', day: 'numeric' };
+        const timeOpts = { hour: 'numeric', minute: '2-digit' };
+        const dayStr = event.start.toLocaleDateString([], dayOpts);
+        const startTime = event.start.toLocaleTimeString([], timeOpts);
+        const endTime = event.end ? event.end.toLocaleTimeString([], timeOpts) : '';
+        timeEl.textContent = endTime ? `${dayStr} · ${startTime} – ${endTime}` : `${dayStr} · ${startTime}`;
+      }
+
+      // RSVP
+      const rsvpSection = document.getElementById('popup-rsvp');
+      if (props.myStatus && props.myStatus !== 'owner') {
+        rsvpSection.classList.remove('hidden');
+        document.querySelectorAll('.rsvp-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById('rsvp-' + props.myStatus);
+        if (activeBtn) activeBtn.classList.add('active');
+      } else {
+        rsvpSection.classList.add('hidden');
+      }
+
+      // Meeting
+      const meetingEl = document.getElementById('popup-meeting');
+      if (props.meetingLink) {
+        document.getElementById('popup-meeting-type').textContent = props.meetingType || 'Video call';
+        document.getElementById('popup-join-link').href = props.meetingLink;
+        document.getElementById('popup-join-link').textContent = props.meetingType ? `Join with ${props.meetingType}` : 'Join meeting';
+        meetingEl.classList.remove('hidden');
+      } else {
+        meetingEl.classList.add('hidden');
+      }
+
+      // Location
+      const locEl = document.getElementById('popup-location');
+      if (props.location) {
+        document.getElementById('popup-location-text').textContent = props.location;
+        locEl.classList.remove('hidden');
+      } else {
+        locEl.classList.add('hidden');
+      }
+
+      // Account
+      document.getElementById('popup-account-text').textContent = props.account;
+
+      // Organizer
+      const orgEl = document.getElementById('popup-organizer');
+      if (props.organizer) {
+        document.getElementById('popup-organizer-text').textContent = props.organizer;
+        orgEl.classList.remove('hidden');
+      } else {
+        orgEl.classList.add('hidden');
+      }
+
+      // Attendees
+      const attEl = document.getElementById('popup-attendees');
+      if (props.attendees && props.attendees.length > 0) {
+        const count = props.attendees.length;
+        const yesCount = props.attendees.filter(a => a.status === 'accepted').length;
+        document.getElementById('popup-attendees-count').textContent = `${count} guest${count !== 1 ? 's' : ''} · ${yesCount} yes`;
+
+        const statusDots = {
+          accepted: '<span class="status-dot dot-accepted"></span>',
+          declined: '<span class="status-dot dot-declined"></span>',
+          tentative: '<span class="status-dot dot-tentative"></span>',
+          needsAction: '<span class="status-dot dot-pending"></span>',
+        };
+        document.getElementById('popup-attendees-list').innerHTML = props.attendees.map(a => {
+          const dot = statusDots[a.status] || statusDots.needsAction;
+          const tag = a.organizer ? '<span class="org-tag">organizer</span>' : '';
+          return `<div class="attendee-row">${dot} <span>${escapeHtml(a.name)}</span> ${tag}</div>`;
+        }).join('');
+        attEl.classList.remove('hidden');
+      } else {
+        attEl.classList.add('hidden');
+      }
+
+      // Description
+      const descEl = document.getElementById('popup-description');
+      if (props.description) {
+        const sanitized = props.description
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/on\w+="[^"]*"/gi, '');
+        document.getElementById('popup-description-text').innerHTML = sanitized;
+        descEl.classList.remove('hidden');
+      } else {
+        descEl.classList.add('hidden');
+      }
+
+      document.getElementById('popup-link').href = props.htmlLink || '#';
+      document.getElementById('event-popup').classList.remove('hidden');
+    }
+
+    function closePopup() {
+      document.getElementById('event-popup').classList.add('hidden');
+      currentEvent = null;
+    }
+
+    async function rsvp(status) {
+      if (!currentEvent) return;
+      const btns = document.querySelectorAll('.rsvp-btn');
+      btns.forEach(b => { b.disabled = true; b.classList.remove('active'); });
+      const activeBtn = document.getElementById('rsvp-' + status);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      try {
+        const res = await fetch(`/api/events/${currentEvent.id}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account: currentEvent.account, status }),
+        });
+        if (!res.ok) throw new Error('RSVP failed');
+        calendar.refetchEvents();
+      } catch (err) {
+        alert('Failed to update RSVP.');
+      } finally {
+        btns.forEach(b => b.disabled = false);
+      }
+    }
+
+    async function deleteEvent() {
+      if (!currentEvent) return;
+      if (!confirm(`Delete "${currentEvent.title}"?`)) return;
+
+      try {
+        const res = await fetch(`/api/events/${currentEvent.id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account: currentEvent.account }),
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        closePopup();
+        calendar.refetchEvents();
+      } catch (err) {
+        alert('Failed to delete event. You may not have permission.');
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopup();
+    });
+  </script>
+</body>
+</html>
