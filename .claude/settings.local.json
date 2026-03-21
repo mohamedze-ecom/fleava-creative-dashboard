@@ -8,7 +8,10 @@
       "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0/export?format=csv&gid=1635997307\")",
       "Bash(lsof -ti:3000)",
       "Bash(gh auth:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(railway version:*)",
+      "Bash(railway --help)",
+      "Bash(railway login:*)"
     ]
   }
 }
