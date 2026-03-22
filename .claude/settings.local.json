@@ -12,7 +12,9 @@
       "Bash(railway version:*)",
       "Bash(railway --help)",
       "Bash(railway login:*)",
-      "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0/export?format=csv&gid=1813443487\")"
+      "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0/export?format=csv&gid=1813443487\")",
+      "WebFetch(domain:fleava-creative-dashboard.onrender.com)",
+      "Bash(gh api:*)"
     ]
   }
 }

@@ -283,8 +283,64 @@
   .stat-card.revision .stat-number { color: var(--orange); }
   .stat-card.content .stat-number { color: var(--red); }
   .stat-card.total .stat-number { color: var(--text); }
-  .stat-card.hitrate .stat-number { color: var(--cyan); }
+  .stat-card.hitrate {
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+    animation: hitrate-glow 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card.hitrate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+    animation: hitrate-pulse 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .stat-card.hitrate::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(6,182,212,0.4), transparent 50%, rgba(6,182,212,0.2)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: hitrate-border 2.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .stat-card.hitrate .stat-number {
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(6, 182, 212, 0.6), 0 0 40px rgba(6, 182, 212, 0.3);
+    animation: hitrate-text 2.5s ease-in-out infinite;
+  }
   .stat-card.hitrate .stat-label { color: var(--cyan); opacity: 0.8; }
+
+  @keyframes hitrate-glow {
+    0%, 100% {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.1), 0 0 30px rgba(6, 182, 212, 0.05), inset 0 0 15px rgba(6, 182, 212, 0.03);
+      border-color: rgba(6, 182, 212, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.25), 0 0 50px rgba(6, 182, 212, 0.12), inset 0 0 25px rgba(6, 182, 212, 0.06);
+      border-color: rgba(6, 182, 212, 0.45);
+    }
+  }
+  @keyframes hitrate-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+  @keyframes hitrate-border {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  @keyframes hitrate-text {
+    0%, 100% { text-shadow: 0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(6, 182, 212, 0.2); }
+    50% { text-shadow: 0 0 25px rgba(6, 182, 212, 0.8), 0 0 50px rgba(6, 182, 212, 0.4), 0 0 80px rgba(6, 182, 212, 0.15); }
+  }
 
   /* Progress Bar */
   .progress-section {
