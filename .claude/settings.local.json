@@ -11,7 +11,8 @@
       "Bash(brew install:*)",
       "Bash(railway version:*)",
       "Bash(railway --help)",
-      "Bash(railway login:*)"
+      "Bash(railway login:*)",
+      "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0/export?format=csv&gid=1813443487\")"
     ]
   }
 }

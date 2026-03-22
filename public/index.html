@@ -283,6 +283,8 @@
   .stat-card.revision .stat-number { color: var(--orange); }
   .stat-card.content .stat-number { color: var(--red); }
   .stat-card.total .stat-number { color: var(--text); }
+  .stat-card.hitrate .stat-number { color: var(--cyan); }
+  .stat-card.hitrate .stat-label { color: var(--cyan); opacity: 0.8; }
 
   /* Progress Bar */
   .progress-section {
@@ -1029,10 +1031,14 @@ function countByField(data, field) {
   const counts = {};
   data.forEach(r => {
     const val = r[field] || 'Unassigned';
-    if (!counts[val]) counts[val] = { total: 0, statuses: {} };
+    if (!counts[val]) counts[val] = { total: 0, statuses: {}, winners: 0 };
     counts[val].total++;
     const s = r._status || 'unknown';
     counts[val].statuses[s] = (counts[val].statuses[s] || 0) + 1;
+    const w = (r['Winner?'] || '').toString().trim().toLowerCase();
+    if (w && w !== '' && w !== 'no' && w !== 'n' && w !== '-' && w !== 'n/a') {
+      counts[val].winners++;
+    }
   });
   return counts;
 }
@@ -1066,6 +1072,11 @@ function render() {
   const briefingCount = (statusCounts['breifing'] || 0) + (statusCounts['briefing'] || 0);
   const revisionCount = statusCounts['needs revision'] || 0;
   const contentCount = statusCounts['content needed'] || 0;
+  const winnerCount = data.filter(r => {
+    const w = (r['Winner?'] || '').toString().trim().toLowerCase();
+    return w && w !== '' && w !== 'no' && w !== 'n' && w !== '-' && w !== 'n/a';
+  }).length;
+  const hitRate = launchedCount > 0 ? Math.round((winnerCount / launchedCount) * 100) : 0;
   const completedPct = total > 0 ? Math.round((launchedCount / total) * 100) : 0;
   const readyPct = total > 0 ? Math.round(((launchedCount + readyCount) / total) * 100) : 0;
 
@@ -1138,6 +1149,10 @@ function render() {
       <div class="stat-card content">
         <div class="stat-number">${contentCount}</div>
         <div class="stat-label">Content Needed</div>
+      </div>
+      <div class="stat-card hitrate">
+        <div class="stat-number">${hitRate}%</div>
+        <div class="stat-label">Hit Rate (${winnerCount}/${launchedCount} winners)</div>
       </div>
     </div>
 
@@ -1241,6 +1256,8 @@ function renderPeopleList(people, fieldName) {
     const launched = (info.statuses['launched'] || 0);
     const ready = (info.statuses['ready'] || 0);
     const donePct = info.total > 0 ? Math.round(((launched + ready) / info.total) * 100) : 0;
+    const winners = info.winners || 0;
+    const personHitRate = launched > 0 ? Math.round((winners / launched) * 100) : 0;
 
     return `
       <div class="person-row" onclick="setFilter('${fieldName === 'Creative Strategist' ? 'strategist' : 'editor'}', '${name}');" style="cursor:pointer">
@@ -1249,6 +1266,7 @@ function renderPeopleList(people, fieldName) {
           <div class="person-name">${name}</div>
           <div class="person-stats">
             ${launched > 0 ? `<span class="person-stat" style="background:var(--green-bg);color:var(--green)">${launched} launched</span>` : ''}
+            ${launched > 0 ? `<span class="person-stat" style="background:var(--cyan-bg);color:var(--cyan)">${personHitRate}% hit rate (${winners}/${launched})</span>` : ''}
             ${ready > 0 ? `<span class="person-stat" style="background:var(--blue-bg);color:var(--blue)">${ready} ready</span>` : ''}
             <span class="person-stat" style="background:var(--surface-3);color:var(--text-muted)">${info.total} total</span>
           </div>
