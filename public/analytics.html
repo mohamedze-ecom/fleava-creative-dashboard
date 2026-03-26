@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Analytics — Fleava</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg: #121218;
+      --surface: #1a1a22;
+      --surface-2: #22222c;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.14);
+      --text: #ececef;
+      --text-secondary: #a0a0ab;
+      --text-muted: #5a5a66;
+      --accent: #7c6cf0;
+      --accent-light: rgba(124, 108, 240, 0.12);
+      --accent-glow: rgba(124, 108, 240, 0.35);
+      --red: #f87171;
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --blue: #60a5fa;
+      --cyan: #22d3ee;
+      --pink: #f472b6;
+      --orange: #fb923c;
+      --hover-bg: rgba(255, 255, 255, 0.04);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .glow-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow);
+      animation: pulse 3s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 8px var(--accent-glow), 0 0 16px rgba(124, 108, 240, 0.15); opacity: 0.85; }
+      50% { box-shadow: 0 0 16px var(--accent-glow), 0 0 32px var(--accent-glow); opacity: 1; }
+    }
+
+    .header-left h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 18px;
+      height: 34px;
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-link:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .nav-link.active {
+      background: var(--accent-light);
+      color: #b4a9f8;
+      border-color: rgba(124, 108, 240, 0.25);
+    }
+
+    /* ── Stats Cards ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--border-hover); }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 0 24px 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .toggle-btn {
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .toggle-btn:hover { color: var(--text-secondary); background: var(--hover-bg); }
+
+    .toggle-btn.active {
+      background: var(--accent-light);
+      color: #b4a9f8;
+    }
+
+    /* ── Charts ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 0 24px 24px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .chart-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 320px;
+    }
+
+    /* ── Table ── */
+    .table-section {
+      padding: 0 24px 24px;
+    }
+
+    .table-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 16px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      width: 280px;
+      max-width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 14px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%235a5a66' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .filter-select:focus { border-color: var(--accent); }
+
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--hover-bg); }
+
+    td {
+      padding: 10px 16px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-launched { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+    .badge-ready { background: rgba(96, 165, 250, 0.12); color: var(--blue); }
+    .badge-editing { background: rgba(251, 191, 36, 0.12); color: var(--yellow); }
+    .badge-briefing { background: rgba(244, 114, 182, 0.12); color: var(--pink); }
+    .badge-other { background: rgba(255, 255, 255, 0.06); color: var(--text-muted); }
+
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .type-video { background: rgba(124, 108, 240, 0.12); color: #b4a9f8; }
+    .type-static { background: rgba(34, 211, 238, 0.12); color: var(--cyan); }
+
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .link-cell a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .link-cell a:hover { text-decoration: underline; }
+
+    /* ── Loading ── */
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      header { padding: 10px 14px; flex-direction: column; align-items: flex-start; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); padding: 16px; gap: 10px; }
+      .stat-value { font-size: 24px; }
+      .charts-grid, .table-section { padding: 0 14px 16px; }
+      .controls { padding: 0 14px 12px; }
+      .chart-wrapper { height: 240px; }
+      .search-input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <div class="glow-dot"></div>
+      <h1>Creative Analytics</h1>
+    </div>
+    <div class="header-right">
+      <a href="/" class="nav-link">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+        Calendar
+      </a>
+      <a href="/analytics.html" class="nav-link active">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 13L5 5l3 4 2-6 3 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Analytics
+      </a>
+    </div>
+  </header>
+
+  <div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <span style="color: var(--text-muted); font-size: 13px;">Loading sheet data…</span>
+  </div>
+
+  <div id="app-content" style="display: none;">
+    <!-- Stats Cards -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <p class="stat-label">Total Creatives</p>
+        <p class="stat-value" id="stat-total" style="color: var(--text);">—</p>
+        <p class="stat-sub" id="stat-total-sub"></p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Videos</p>
+        <p class="stat-value" id="stat-videos" style="color: var(--accent);">—</p>
+        <p class="stat-sub" id="stat-videos-sub"></p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Need Editing</p>
+        <p class="stat-value" id="stat-editing" style="color: var(--yellow);">—</p>
+        <p class="stat-sub" id="stat-editing-sub"></p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Launched</p>
+        <p class="stat-value" id="stat-launched" style="color: var(--green);">—</p>
+        <p class="stat-sub" id="stat-launched-sub"></p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Ready</p>
+        <p class="stat-value" id="stat-ready" style="color: var(--blue);">—</p>
+        <p class="stat-sub" id="stat-ready-sub"></p>
+      </div>
+    </div>
+
+    <!-- Chart: Creatives Per Person -->
+    <div class="controls">
+      <h2 class="section-title">Creatives Added Per Person</h2>
+      <div class="toggle-group" id="person-toggle">
+        <button class="toggle-btn active" data-range="daily">Daily</button>
+        <button class="toggle-btn" data-range="weekly">Weekly</button>
+        <button class="toggle-btn" data-range="monthly">Monthly</button>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3 id="person-chart-title">Creatives added per strategist — Daily</h3>
+        <div class="chart-wrapper">
+          <canvas id="personChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart: Videos Being Edited -->
+    <div class="controls">
+      <h2 class="section-title">Videos Being Edited</h2>
+      <div class="toggle-group" id="video-toggle">
+        <button class="toggle-btn active" data-range="daily">Daily</button>
+        <button class="toggle-btn" data-range="weekly">Weekly</button>
+        <button class="toggle-btn" data-range="monthly">Monthly</button>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3 id="video-chart-title">Videos being edited — Daily</h3>
+        <div class="chart-wrapper">
+          <canvas id="videoChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table: All Creatives -->
+    <div class="table-section">
+      <div class="table-controls">
+        <h2 class="section-title">All Creatives</h2>
+        <div class="filter-group">
+          <input type="text" class="search-input" id="search" placeholder="Search by name, strategist, editor…">
+          <select class="filter-select" id="filter-type">
+            <option value="">All Types</option>
+            <option value="Video">Video</option>
+            <option value="Static">Static</option>
+          </select>
+          <select class="filter-select" id="filter-status">
+            <option value="">All Statuses</option>
+          </select>
+          <select class="filter-select" id="filter-person">
+            <option value="">All Strategists</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Strategist</th>
+              <th>Editor</th>
+              <th>Ad Name</th>
+              <th>Status</th>
+              <th>Launched</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div class="table-footer">
+          <span id="table-count">0 creatives</span>
+          <span id="table-info"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
+    const GID = '1813443487';
+
+    const COLORS = {
+      'Tysin':   '#7c6cf0',
+      'Marco':   '#f59e0b',
+      'Nick':    '#10b981',
+      'Mohamed': '#ec4899',
+      'Azlan':   '#60a5fa',
+      'Other':   '#5a5a66',
+    };
+
+    const EDITOR_COLORS = {
+      'Kashif': '#7c6cf0',
+      'Rami':   '#f59e0b',
+      'Sourav': '#10b981',
+      'Galih':  '#ec4899',
+      'other':  '#5a5a66',
+    };
+
+    let allData = [];
+    let personChart = null;
+    let videoChart = null;
+    let personRange = 'daily';
+    let videoRange = 'daily';
+
+    // ── Parse CSV ──
+    function parseCSV(csv) {
+      const lines = csv.split('\n');
+      // Find the header row
+      let headerIdx = -1;
+      for (let i = 0; i < Math.min(lines.length, 10); i++) {
+        if (lines[i].includes('Start Date') && lines[i].includes('Type')) {
+          headerIdx = i;
+          break;
+        }
+      }
+      if (headerIdx === -1) return [];
+
+      const headers = parseCSVLine(lines[headerIdx]);
+      const rows = [];
+      for (let i = headerIdx + 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const values = parseCSVLine(line);
+        if (!values[0] && !values[1] && !values[6]) continue; // skip empty rows
+        const row = {};
+        headers.forEach((h, idx) => {
+          row[h.trim()] = (values[idx] || '').trim();
+        });
+        if (row['Start Date'] || row['Ad Name']) {
+          rows.push(row);
+        }
+      }
+      return rows;
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            current += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ',') {
+            result.push(current);
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+      }
+      result.push(current);
+      return result;
+    }
+
+    // ── Date helpers ──
+    function parseDate(str) {
+      if (!str) return null;
+      // Handle M/D/YYYY, M/D/YY, M/D/26 formats
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      let [m, d, y] = parts.map(Number);
+      if (y < 100) y += 2000;
+      const date = new Date(y, m - 1, d);
+      return isNaN(date.getTime()) ? null : date;
+    }
+
+    function dateKey(date, range) {
+      if (!date) return null;
+      if (range === 'daily') {
+        return date.toISOString().slice(0, 10);
+      } else if (range === 'weekly') {
+        const d = new Date(date);
+        const day = d.getDay();
+        d.setDate(d.getDate() - day); // start of week (Sunday)
+        return d.toISOString().slice(0, 10);
+      } else {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      }
+    }
+
+    function dateLabel(key, range) {
+      if (range === 'monthly') {
+        const [y, m] = key.split('-');
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${months[parseInt(m) - 1]} ${y}`;
+      }
+      const d = new Date(key + 'T00:00:00');
+      if (range === 'weekly') {
+        return `Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      }
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // ── Aggregate data ──
+    function aggregateByPerson(data, range) {
+      const persons = {};
+      const allKeys = new Set();
+
+      data.forEach(row => {
+        const date = parseDate(row['Start Date']);
+        const person = row['Creative Strategist'];
+        if (!date || !person) return;
+        const key = dateKey(date, range);
+        if (!key) return;
+        allKeys.add(key);
+        if (!persons[person]) persons[person] = {};
+        persons[person][key] = (persons[person][key] || 0) + 1;
+      });
+
+      const sortedKeys = [...allKeys].sort();
+      return { persons, sortedKeys };
+    }
+
+    function aggregateVideosEditing(data, range) {
+      const editors = {};
+      const allKeys = new Set();
+
+      data.forEach(row => {
+        const date = parseDate(row['Start Date']);
+        const editor = row['Designer/Editor'];
+        const type = (row['Type'] || '').toLowerCase();
+        const status = (row['Status'] || '').toLowerCase();
+        if (!date || !editor) return;
+        if (type !== 'video') return;
+        // Count videos that need editing or are being edited
+        const key = dateKey(date, range);
+        if (!key) return;
+        allKeys.add(key);
+        if (!editors[editor]) editors[editor] = {};
+        editors[editor][key] = (editors[editor][key] || 0) + 1;
+      });
+
+      const sortedKeys = [...allKeys].sort();
+      return { editors, sortedKeys };
+    }
+
+    // ── Chart.js config ──
+    function getChartConfig(title) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#a0a0ab',
+              font: { family: 'Inter', size: 12, weight: 500 },
+              boxWidth: 12,
+              boxHeight: 12,
+              borderRadius: 3,
+              useBorderRadius: true,
+              padding: 16,
+            },
+          },
+          tooltip: {
+            backgroundColor: '#1a1a22',
+            titleColor: '#ececef',
+            bodyColor: '#a0a0ab',
+            borderColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            padding: 12,
+            titleFont: { family: 'Inter', size: 13, weight: 600 },
+            bodyFont: { family: 'Inter', size: 12 },
+            cornerRadius: 10,
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+            ticks: {
+              color: '#5a5a66',
+              font: { family: 'Inter', size: 11 },
+              maxRotation: 45,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+            ticks: {
+              color: '#5a5a66',
+              font: { family: 'Inter', size: 11 },
+              stepSize: 1,
+            },
+          },
+        },
+      };
+    }
+
+    function buildPersonChart() {
+      const { persons, sortedKeys } = aggregateByPerson(allData, personRange);
+      const labels = sortedKeys.map(k => dateLabel(k, personRange));
+      const colorKeys = Object.keys(COLORS);
+
+      const datasets = Object.entries(persons).map(([name, counts], i) => {
+        const color = COLORS[name] || COLORS['Other'];
+        return {
+          label: name,
+          data: sortedKeys.map(k => counts[k] || 0),
+          borderColor: color,
+          backgroundColor: color + '18',
+          tension: 0.35,
+          fill: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: color,
+          borderWidth: 2.5,
+        };
+      });
+
+      const ctx = document.getElementById('personChart').getContext('2d');
+      if (personChart) personChart.destroy();
+      personChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: getChartConfig(),
+      });
+
+      document.getElementById('person-chart-title').textContent =
+        `Creatives added per strategist — ${personRange.charAt(0).toUpperCase() + personRange.slice(1)}`;
+    }
+
+    function buildVideoChart() {
+      const { editors, sortedKeys } = aggregateVideosEditing(allData, videoRange);
+      const labels = sortedKeys.map(k => dateLabel(k, videoRange));
+
+      const datasets = Object.entries(editors).map(([name, counts], i) => {
+        const color = EDITOR_COLORS[name] || EDITOR_COLORS['other'];
+        return {
+          label: name,
+          data: sortedKeys.map(k => counts[k] || 0),
+          borderColor: color,
+          backgroundColor: color + '18',
+          tension: 0.35,
+          fill: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: color,
+          borderWidth: 2.5,
+        };
+      });
+
+      const ctx = document.getElementById('videoChart').getContext('2d');
+      if (videoChart) videoChart.destroy();
+      videoChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: getChartConfig(),
+      });
+
+      document.getElementById('video-chart-title').textContent =
+        `Videos being edited — ${videoRange.charAt(0).toUpperCase() + videoRange.slice(1)}`;
+    }
+
+    // ── Stats ──
+    function updateStats() {
+      const total = allData.length;
+      const videos = allData.filter(r => (r['Type'] || '').toLowerCase() === 'video').length;
+      const statics = total - videos;
+      const editing = allData.filter(r => (r['Status'] || '').toLowerCase().includes('editing')).length;
+      const launched = allData.filter(r => (r['Status'] || '').toLowerCase() === 'launched').length;
+      const ready = allData.filter(r => (r['Status'] || '').toLowerCase() === 'ready').length;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-total-sub').textContent = `${videos} videos · ${statics} static`;
+
+      document.getElementById('stat-videos').textContent = videos;
+      document.getElementById('stat-videos-sub').textContent = `${Math.round(videos / total * 100)}% of total`;
+
+      document.getElementById('stat-editing').textContent = editing;
+      document.getElementById('stat-editing-sub').textContent = `${Math.round(editing / total * 100)}% of total`;
+
+      document.getElementById('stat-launched').textContent = launched;
+      document.getElementById('stat-launched-sub').textContent = `${Math.round(launched / total * 100)}% of total`;
+
+      document.getElementById('stat-ready').textContent = ready;
+      document.getElementById('stat-ready-sub').textContent = `${Math.round(ready / total * 100)}% of total`;
+    }
+
+    // ── Table ──
+    function getStatusBadge(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'launched') return `<span class="badge badge-launched">Launched</span>`;
+      if (s === 'ready') return `<span class="badge badge-ready">Ready</span>`;
+      if (s.includes('editing')) return `<span class="badge badge-editing">Need Editing</span>`;
+      if (s.includes('brief') || s.includes('content')) return `<span class="badge badge-briefing">${status}</span>`;
+      if (!status) return `<span class="badge badge-other">—</span>`;
+      return `<span class="badge badge-other">${status}</span>`;
+    }
+
+    function getTypeBadge(type) {
+      const t = (type || '').toLowerCase();
+      if (t === 'video') return `<span class="type-badge type-video">Video</span>`;
+      if (t === 'static') return `<span class="type-badge type-static">Static</span>`;
+      return `<span class="type-badge" style="background:rgba(255,255,255,0.06);color:var(--text-muted);">${type || '—'}</span>`;
+    }
+
+    function renderTable() {
+      const search = document.getElementById('search').value.toLowerCase();
+      const typeFilter = document.getElementById('filter-type').value;
+      const statusFilter = document.getElementById('filter-status').value;
+      const personFilter = document.getElementById('filter-person').value;
+
+      const filtered = allData.filter(row => {
+        if (typeFilter && (row['Type'] || '') !== typeFilter) return false;
+        if (statusFilter && (row['Status'] || '') !== statusFilter) return false;
+        if (personFilter && (row['Creative Strategist'] || '') !== personFilter) return false;
+        if (search) {
+          const haystack = [
+            row['Ad Name'], row['Creative Strategist'], row['Designer/Editor'],
+            row['Status'], row['Type'], row['Start Date']
+          ].join(' ').toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      });
+
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = filtered.map(row => {
+        const link = row['Frame/Drive Link'];
+        const linkCell = link && (link.startsWith('http'))
+          ? `<td class="link-cell"><a href="${link}" target="_blank">View ↗</a></td>`
+          : `<td style="color:var(--text-muted);">—</td>`;
+
+        return `<tr>
+          <td>${row['Start Date'] || '—'}</td>
+          <td>${getTypeBadge(row['Type'])}</td>
+          <td style="color:var(--text);">${row['Creative Strategist'] || '—'}</td>
+          <td>${row['Designer/Editor'] || '—'}</td>
+          <td style="color:var(--text);font-weight:500;">${row['Ad Name'] || '—'}</td>
+          <td>${getStatusBadge(row['Status'])}</td>
+          <td>${row['Date Launched'] || '—'}</td>
+          ${linkCell}
+        </tr>`;
+      }).join('');
+
+      document.getElementById('table-count').textContent = `${filtered.length} creative${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    function populateFilters() {
+      const statuses = [...new Set(allData.map(r => r['Status']).filter(Boolean))].sort();
+      const persons = [...new Set(allData.map(r => r['Creative Strategist']).filter(Boolean))].sort();
+
+      const statusSelect = document.getElementById('filter-status');
+      statuses.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        statusSelect.appendChild(opt);
+      });
+
+      const personSelect = document.getElementById('filter-person');
+      persons.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        personSelect.appendChild(opt);
+      });
+    }
+
+    // ── Toggle handlers ──
+    document.getElementById('person-toggle').addEventListener('click', e => {
+      const btn = e.target.closest('.toggle-btn');
+      if (!btn) return;
+      document.querySelectorAll('#person-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      personRange = btn.dataset.range;
+      buildPersonChart();
+    });
+
+    document.getElementById('video-toggle').addEventListener('click', e => {
+      const btn = e.target.closest('.toggle-btn');
+      if (!btn) return;
+      document.querySelectorAll('#video-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      videoRange = btn.dataset.range;
+      buildVideoChart();
+    });
+
+    // ── Filter handlers ──
+    document.getElementById('search').addEventListener('input', renderTable);
+    document.getElementById('filter-type').addEventListener('change', renderTable);
+    document.getElementById('filter-status').addEventListener('change', renderTable);
+    document.getElementById('filter-person').addEventListener('change', renderTable);
+
+    // ── Load data ──
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/sheet-csv?id=${SHEET_ID}&gid=${GID}`);
+        if (!res.ok) throw new Error('Failed to load sheet');
+        const csv = await res.text();
+        allData = parseCSV(csv);
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('app-content').style.display = 'block';
+
+        updateStats();
+        buildPersonChart();
+        buildVideoChart();
+        populateFilters();
+        renderTable();
+      } catch (err) {
+        document.getElementById('loading').innerHTML = `
+          <div style="text-align:center;">
+            <p style="color:var(--red);font-size:15px;font-weight:600;margin-bottom:8px;">Failed to load data</p>
+            <p style="color:var(--text-muted);font-size:13px;">${err.message}</p>
+            <button onclick="loadData()" style="margin-top:16px;padding:8px 20px;background:var(--accent-light);color:#b4a9f8;border:1px solid rgba(124,108,240,0.25);border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
