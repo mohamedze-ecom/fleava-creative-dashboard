@@ -997,30 +997,32 @@ function fetchWithTimeout(url, timeoutMs = 20000) {
 
 async function fetchData() {
   try {
-    // Dynamically fetch sheet tabs every time to pick up new months
+    // Start with all known tabs — this is the reliable source of truth
+    const knownTabs = [
+      { gid: '0', label: 'Sep 2025' },
+      { gid: '1961556020', label: 'Oct 2025' },
+      { gid: '209196095', label: 'Nov 2025' },
+      { gid: '1207919965', label: 'Dec 2025' },
+      { gid: '1856363662', label: 'Jan 2026' },
+      { gid: '677415911', label: 'Feb 2026' },
+      { gid: '1813443487', label: 'Mar 2026' },
+      { gid: '1983517648', label: 'Apr 2026' },
+    ];
+    const knownGids = new Set(knownTabs.map(t => t.gid));
+
+    // Try to dynamically discover any NEW tabs not in the known list
     try {
       const tabsRes = await fetchWithTimeout(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
       if (tabsRes.ok) {
         const allTabs = await tabsRes.json();
         const monthPattern = /^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
-        SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
+        const newTabs = allTabs.filter(t => monthPattern.test(t.label.trim()) && !knownGids.has(t.gid));
+        knownTabs.push(...newTabs);
       }
     } catch (e) {
       console.warn('Failed to fetch sheet tabs:', e.message);
     }
-    // Fallback to known tabs if dynamic fetch failed
-    if (SHEET_TABS.length === 0) {
-      SHEET_TABS = [
-        { gid: '0', label: 'Sep 2025' },
-        { gid: '1961556020', label: 'Oct 2025' },
-        { gid: '209196095', label: 'Nov 2025' },
-        { gid: '1207919965', label: 'Dec 2025' },
-        { gid: '1856363662', label: 'Jan 2026' },
-        { gid: '677415911', label: 'Feb 2026' },
-        { gid: '1813443487', label: 'Mar 2026' },
-        { gid: '1983517648', label: 'Apr 2026' },
-      ];
-    }
+    SHEET_TABS = knownTabs;
 
     // Fetch creative calendar tabs + UGC tracker in parallel
     const calendarFetches = SHEET_TABS.map(async (tab) => {
