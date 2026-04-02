@@ -989,6 +989,12 @@ function parseUGCCSV(csv) {
   return data;
 }
 
+function fetchWithTimeout(url, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
+
 async function fetchData() {
   try {
     // Dynamically fetch sheet tabs every time to pick up new months
@@ -1002,19 +1008,29 @@ async function fetchData() {
 
     // Fetch creative calendar tabs + UGC tracker in parallel
     const calendarFetches = SHEET_TABS.map(async (tab) => {
-      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
-      const response = await fetch(url);
-      if (!response.ok) return [];
-      const csv = await response.text();
-      return parseCSV(csv);
+      try {
+        const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
+        const response = await fetchWithTimeout(url);
+        if (!response.ok) return [];
+        const csv = await response.text();
+        return parseCSV(csv);
+      } catch (e) {
+        console.warn(`Failed to fetch tab ${tab.label}:`, e.message);
+        return [];
+      }
     });
 
     const ugcFetch = (async () => {
-      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${UGC_GID}&_=${Date.now()}`;
-      const response = await fetch(url);
-      if (!response.ok) return [];
-      const csv = await response.text();
-      return parseUGCCSV(csv);
+      try {
+        const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${UGC_GID}&_=${Date.now()}`;
+        const response = await fetchWithTimeout(url);
+        if (!response.ok) return [];
+        const csv = await response.text();
+        return parseUGCCSV(csv);
+      } catch (e) {
+        console.warn('Failed to fetch UGC tab:', e.message);
+        return [];
+      }
     })();
 
     const [calResults, ugcResults] = await Promise.all([
@@ -1056,6 +1072,7 @@ async function fetchData() {
   } catch (err) {
     console.error('Fetch error:', err);
     document.getElementById('lastUpdated').textContent = 'Error loading data';
+    render();
   }
 }
 
