@@ -294,6 +294,41 @@ app.get('/api/events', async (req, res) => {
   res.json(allEvents);
 });
 
+// Fetch sheet tab metadata (names + gids) dynamically
+app.get('/api/sheet-tabs', async (req, res) => {
+  const { id } = req.query;
+  if (!id) return res.status(400).json({ error: 'Sheet ID required' });
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/edit`;
+    const response = await fetch(url, { redirect: 'follow' });
+    if (!response.ok) throw new Error(`Google returned ${response.status}`);
+    const html = await response.text();
+
+    // Extract sheet metadata from the HTML page
+    // Google embeds sheet info in a script block as JSON
+    const tabs = [];
+    const sheetRegex = /\\x22name\\x22:\\x22([^\\]*)\\x22[^}]*?\\x22sheetId\\x22:(\d+)/g;
+    let match;
+    while ((match = sheetRegex.exec(html)) !== null) {
+      const name = match[1].replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+      tabs.push({ gid: match[2], label: name });
+    }
+
+    // Fallback: try alternate pattern
+    if (tabs.length === 0) {
+      const altRegex = /"name":"([^"]*)"[^}]*?"sheetId":(\d+)/g;
+      while ((match = altRegex.exec(html)) !== null) {
+        tabs.push({ gid: match[2], label: match[1] });
+      }
+    }
+
+    res.json(tabs);
+  } catch (err) {
+    console.error('Sheet tabs fetch error:', err.message);
+    res.status(502).json({ error: 'Failed to fetch sheet tabs' });
+  }
+});
+
 // Proxy endpoint for Google Sheets CSV export (avoids CORS)
 app.get('/api/sheet-csv', async (req, res) => {
   const { id, gid } = req.query;

@@ -840,15 +840,7 @@
 
 <script>
 const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
-const SHEET_TABS = [
-  { gid: '0', label: 'Sep 2025' },
-  { gid: '1961556020', label: 'Oct 2025' },
-  { gid: '209196095', label: 'Nov 2025' },
-  { gid: '1207919965', label: 'Dec 2025' },
-  { gid: '1856363662', label: 'Jan 2026' },
-  { gid: '677415911', label: 'Feb 2026' },
-  { gid: '1813443487', label: 'Mar 2026' },
-];
+let SHEET_TABS = []; // Fetched dynamically from the Google Sheet
 const UGC_GID = '1635997307';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -999,6 +991,15 @@ function parseUGCCSV(csv) {
 
 async function fetchData() {
   try {
+    // Dynamically fetch sheet tabs every time to pick up new months
+    const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
+    if (tabsRes.ok) {
+      const allTabs = await tabsRes.json();
+      // Filter to only month tabs (e.g. "Sep 2025", "Jan 2026") — exclude UGC and other non-month tabs
+      const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
+      SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
+    }
+
     // Fetch creative calendar tabs + UGC tracker in parallel
     const calendarFetches = SHEET_TABS.map(async (tab) => {
       const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
