@@ -1002,7 +1002,7 @@ async function fetchData() {
       const tabsRes = await fetchWithTimeout(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
       if (tabsRes.ok) {
         const allTabs = await tabsRes.json();
-        const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
+        const monthPattern = /^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
         SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
       }
     } catch (e) {
@@ -1018,6 +1018,7 @@ async function fetchData() {
         { gid: '1856363662', label: 'Jan 2026' },
         { gid: '677415911', label: 'Feb 2026' },
         { gid: '1813443487', label: 'Mar 2026' },
+        { gid: '1983517648', label: 'Apr 2026' },
       ];
     }
 

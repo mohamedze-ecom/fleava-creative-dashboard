@@ -308,20 +308,19 @@ app.get('/api/sheet-tabs', async (req, res) => {
     const html = await response.text();
 
     // Extract sheet metadata from the HTML page
-    // Google embeds sheet info in a script block as JSON
+    // Google embeds tab data as: [10,0,\"GID\",[...\"Tab Name\"...]]
     const tabs = [];
-    const sheetRegex = /\\x22name\\x22:\\x22([^\\]*)\\x22[^}]*?\\x22sheetId\\x22:(\d+)/g;
     let match;
-    while ((match = sheetRegex.exec(html)) !== null) {
-      const name = match[1].replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-      tabs.push({ gid: match[2], label: name });
+    const gidNameRegex = /\[10,0,\\"(\d+)\\".*?\\"([A-Z][a-z]+ \d{4})\\"/g;
+    while ((match = gidNameRegex.exec(html)) !== null) {
+      tabs.push({ gid: match[1], label: match[2] });
     }
 
-    // Fallback: try alternate pattern
+    // Fallback: extract tab names from DOM and match with known data
     if (tabs.length === 0) {
-      const altRegex = /"name":"([^"]*)"[^}]*?"sheetId":(\d+)/g;
-      while ((match = altRegex.exec(html)) !== null) {
-        tabs.push({ gid: match[2], label: match[1] });
+      const domRegex = /docs-sheet-tab-caption">([^<]+)</g;
+      while ((match = domRegex.exec(html)) !== null) {
+        tabs.push({ label: match[1].trim() });
       }
     }
 
