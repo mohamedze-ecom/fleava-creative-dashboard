@@ -300,7 +300,10 @@ app.get('/api/sheet-tabs', async (req, res) => {
   if (!id) return res.status(400).json({ error: 'Sheet ID required' });
   try {
     const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/edit`;
-    const response = await fetch(url, { redirect: 'follow' });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(url, { redirect: 'follow', signal: controller.signal });
+    clearTimeout(timeout);
     if (!response.ok) throw new Error(`Google returned ${response.status}`);
     const html = await response.text();
 

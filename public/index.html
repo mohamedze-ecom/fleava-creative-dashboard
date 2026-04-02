@@ -998,12 +998,27 @@ function fetchWithTimeout(url, timeoutMs = 20000) {
 async function fetchData() {
   try {
     // Dynamically fetch sheet tabs every time to pick up new months
-    const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
-    if (tabsRes.ok) {
-      const allTabs = await tabsRes.json();
-      // Filter to only month tabs (e.g. "Sep 2025", "Jan 2026") — exclude UGC and other non-month tabs
-      const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
-      SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
+    try {
+      const tabsRes = await fetchWithTimeout(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
+      if (tabsRes.ok) {
+        const allTabs = await tabsRes.json();
+        const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
+        SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
+      }
+    } catch (e) {
+      console.warn('Failed to fetch sheet tabs:', e.message);
+    }
+    // Fallback to known tabs if dynamic fetch failed
+    if (SHEET_TABS.length === 0) {
+      SHEET_TABS = [
+        { gid: '0', label: 'Sep 2025' },
+        { gid: '1961556020', label: 'Oct 2025' },
+        { gid: '209196095', label: 'Nov 2025' },
+        { gid: '1207919965', label: 'Dec 2025' },
+        { gid: '1856363662', label: 'Jan 2026' },
+        { gid: '677415911', label: 'Feb 2026' },
+        { gid: '1813443487', label: 'Mar 2026' },
+      ];
     }
 
     // Fetch creative calendar tabs + UGC tracker in parallel
