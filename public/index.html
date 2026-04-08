@@ -880,24 +880,35 @@ const AVATAR_COLORS = {
 
 function parseCSV(csv) {
   const lines = csv.split('\n');
-  // Find the header row by looking for the line containing "Ad Name"
-  let headerIndex = 0;
+  // Find the header row — different months use different column names
+  let headerIndex = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes('Ad Name')) {
-      headerIndex = i;
-      break;
+    if (lines[i].includes('Ad Name') || lines[i].includes('Ad set Name') || lines[i].includes('Status')) {
+      // Verify it's actually a header row (has multiple known column names)
+      const l = lines[i];
+      const matches = ['Status', 'Creative Strategist', 'Designer/Editor', 'Type'].filter(k => l.includes(k));
+      if (matches.length >= 2) { headerIndex = i; break; }
     }
   }
-  const headers = parseCSVLine(lines[headerIndex]);
+  if (headerIndex === -1) return [];
+  const rawHeaders = parseCSVLine(lines[headerIndex]);
+  // Normalize column names so all months map to the same keys
+  const headers = rawHeaders.map(h => {
+    const t = h.trim();
+    if (t === 'Ad set Name') return 'Ad Name';
+    if (t === 'Iteration') return 'Start Date';
+    return t;
+  });
   const data = [];
   for (let i = headerIndex + 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
     const values = parseCSVLine(lines[i]);
     const row = {};
     headers.forEach((h, idx) => {
-      row[h.trim()] = (values[idx] || '').trim();
+      row[h] = (values[idx] || '').trim();
     });
-    if (row['Ad Name']) data.push(row);
+    // Include row if it has an ad name OR a status OR a strategist (some months have sparse data)
+    if (row['Ad Name'] || row['Status'] || row['Creative Strategist']) data.push(row);
   }
   return data;
 }
@@ -954,6 +965,16 @@ function getMonthLabel(key) {
   return `${months[parseInt(month) - 1]} ${year}`;
 }
 
+function monthKeyFromTabLabel(label) {
+  // "Sep 2025" → "2025-09", "Oct 2025" → "2025-10", etc.
+  const monthNames = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+  const parts = label.trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const m = monthNames[parts[0].toLowerCase().substring(0, 3)];
+  const y = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+  return m && y ? `${y}-${m}` : null;
+}
+
 function getWeekOfMonth(date) {
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
   return Math.ceil((date.getDate() + firstDay.getDay()) / 7);
@@ -989,66 +1010,35 @@ function parseUGCCSV(csv) {
   return data;
 }
 
-function fetchWithTimeout(url, timeoutMs = 20000) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
-}
-
 async function fetchData() {
   try {
-    // Start with all known tabs — this is the reliable source of truth
-    const knownTabs = [
-      { gid: '0', label: 'Sep 2025' },
-      { gid: '1961556020', label: 'Oct 2025' },
-      { gid: '209196095', label: 'Nov 2025' },
-      { gid: '1207919965', label: 'Dec 2025' },
-      { gid: '1856363662', label: 'Jan 2026' },
-      { gid: '677415911', label: 'Feb 2026' },
-      { gid: '1813443487', label: 'Mar 2026' },
-      { gid: '1983517648', label: 'Apr 2026' },
-    ];
-    const knownGids = new Set(knownTabs.map(t => t.gid));
-
-    // Try to dynamically discover any NEW tabs not in the known list
-    try {
-      const tabsRes = await fetchWithTimeout(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
-      if (tabsRes.ok) {
-        const allTabs = await tabsRes.json();
-        const monthPattern = /^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
-        const newTabs = allTabs.filter(t => monthPattern.test(t.label.trim()) && !knownGids.has(t.gid));
-        knownTabs.push(...newTabs);
-      }
-    } catch (e) {
-      console.warn('Failed to fetch sheet tabs:', e.message);
+    // Dynamically fetch sheet tabs every time to pick up new months
+    const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
+    if (tabsRes.ok) {
+      const allTabs = await tabsRes.json();
+      // Filter to only month tabs (e.g. "Sep 2025", "Jan 2026") — exclude UGC and other non-month tabs
+      const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
+      SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
     }
-    SHEET_TABS = knownTabs;
 
     // Fetch creative calendar tabs + UGC tracker in parallel
     const calendarFetches = SHEET_TABS.map(async (tab) => {
-      try {
-        const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
-        const response = await fetchWithTimeout(url);
-        if (!response.ok) return [];
-        const csv = await response.text();
-        return parseCSV(csv);
-      } catch (e) {
-        console.warn(`Failed to fetch tab ${tab.label}:`, e.message);
-        return [];
-      }
+      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      const csv = await response.text();
+      const rows = parseCSV(csv);
+      // Tag each row with the tab label so we can derive month for rows missing dates
+      rows.forEach(r => { r._tabLabel = tab.label; });
+      return rows;
     });
 
     const ugcFetch = (async () => {
-      try {
-        const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${UGC_GID}&_=${Date.now()}`;
-        const response = await fetchWithTimeout(url);
-        if (!response.ok) return [];
-        const csv = await response.text();
-        return parseUGCCSV(csv);
-      } catch (e) {
-        console.warn('Failed to fetch UGC tab:', e.message);
-        return [];
-      }
+      const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${UGC_GID}&_=${Date.now()}`;
+      const response = await fetch(url);
+      if (!response.ok) return [];
+      const csv = await response.text();
+      return parseUGCCSV(csv);
     })();
 
     const [calResults, ugcResults] = await Promise.all([
@@ -1061,8 +1051,16 @@ async function fetchData() {
 
     // Process calendar dates and months
     allData.forEach(row => {
-      row._date = parseDate(row['Start Date']);
-      row._monthKey = row._date ? getMonthKey(row._date) : null;
+      // Try Start Date first, fall back to Date Launched for Sep/Oct which lack Start Date
+      row._date = parseDate(row['Start Date']) || parseDate(row['Date Launched']);
+      if (row._date) {
+        row._monthKey = getMonthKey(row._date);
+      } else if (row._tabLabel) {
+        // Derive month from tab label (e.g. "Sep 2025" → "2025-09")
+        row._monthKey = monthKeyFromTabLabel(row._tabLabel);
+      } else {
+        row._monthKey = null;
+      }
       row._status = normalizeStatus(row['Status']);
     });
 
@@ -1090,7 +1088,6 @@ async function fetchData() {
   } catch (err) {
     console.error('Fetch error:', err);
     document.getElementById('lastUpdated').textContent = 'Error loading data';
-    render();
   }
 }
 

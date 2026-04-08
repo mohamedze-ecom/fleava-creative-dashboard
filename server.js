@@ -300,27 +300,25 @@ app.get('/api/sheet-tabs', async (req, res) => {
   if (!id) return res.status(400).json({ error: 'Sheet ID required' });
   try {
     const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/edit`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const response = await fetch(url, { redirect: 'follow', signal: controller.signal });
-    clearTimeout(timeout);
+    const response = await fetch(url, { redirect: 'follow' });
     if (!response.ok) throw new Error(`Google returned ${response.status}`);
     const html = await response.text();
 
     // Extract sheet metadata from the HTML page
-    // Google embeds tab data as: [10,0,\"GID\",[...\"Tab Name\"...]]
+    // Google embeds sheet info in a script block as JSON
     const tabs = [];
+    const sheetRegex = /\\x22name\\x22:\\x22([^\\]*)\\x22[^}]*?\\x22sheetId\\x22:(\d+)/g;
     let match;
-    const gidNameRegex = /\[10,0,\\"(\d+)\\".*?\\"([A-Z][a-z]+ \d{4})\\"/g;
-    while ((match = gidNameRegex.exec(html)) !== null) {
-      tabs.push({ gid: match[1], label: match[2] });
+    while ((match = sheetRegex.exec(html)) !== null) {
+      const name = match[1].replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+      tabs.push({ gid: match[2], label: name });
     }
 
-    // Fallback: extract tab names from DOM and match with known data
+    // Fallback: try alternate pattern
     if (tabs.length === 0) {
-      const domRegex = /docs-sheet-tab-caption">([^<]+)</g;
-      while ((match = domRegex.exec(html)) !== null) {
-        tabs.push({ label: match[1].trim() });
+      const altRegex = /"name":"([^"]*)"[^}]*?"sheetId":(\d+)/g;
+      while ((match = altRegex.exec(html)) !== null) {
+        tabs.push({ gid: match[2], label: match[1] });
       }
     }
 
@@ -337,10 +335,7 @@ app.get('/api/sheet-csv', async (req, res) => {
   if (!id) return res.status(400).send('Sheet ID required');
   const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/export?format=csv${gid ? `&gid=${encodeURIComponent(gid)}` : ''}`;
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const response = await fetch(url, { redirect: 'follow', signal: controller.signal });
-    clearTimeout(timeout);
+    const response = await fetch(url, { redirect: 'follow' });
     if (!response.ok) throw new Error(`Google returned ${response.status}`);
     const csv = await response.text();
     res.setHeader('Content-Type', 'text/csv');

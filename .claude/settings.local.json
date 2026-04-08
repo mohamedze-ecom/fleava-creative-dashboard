@@ -14,7 +14,18 @@
       "Bash(railway login:*)",
       "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0/export?format=csv&gid=1813443487\")",
       "WebFetch(domain:fleava-creative-dashboard.onrender.com)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(gh repo:*)",
+      "Bash(render --version)",
+      "Read(//Users/mohamedzeineldin/.config/**)",
+      "Read(//Users/mohamedzeineldin/**)",
+      "Bash(env)",
+      "Bash(curl -sv \"http://localhost:3000/api/sheet-csv?id=1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0&gid=1813443487\")",
+      "Bash(node server.js)",
+      "Bash(curl -s 'http://localhost:3000/api/sheet-csv?id=1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0&gid=__TRACKED_VAR__')",
+      "Bash(curl -s \"http://localhost:3000/api/sheet-csv?id=1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0&gid=0\")",
+      "Bash(curl -s \"http://localhost:3000/api/sheet-csv?id=1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0&gid=209196095\")"
     ]
   }
 }
