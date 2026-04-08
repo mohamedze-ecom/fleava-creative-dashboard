@@ -4,7 +4,6 @@ services:
     runtime: node
     buildCommand: npm install
     startCommand: node server.js
-    plan: free
     envVars:
-      - key: NODE_ENV
-        value: production
+      - key: NODE_VERSION
+        value: 20
