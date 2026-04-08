@@ -840,7 +840,15 @@
 
 <script>
 const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
-let SHEET_TABS = []; // Fetched dynamically from the Google Sheet
+let SHEET_TABS = [
+  { gid: '0', label: 'Sep 2025' },
+  { gid: '1961556020', label: 'Oct 2025' },
+  { gid: '209196095', label: 'Nov 2025' },
+  { gid: '1207919965', label: 'Dec 2025' },
+  { gid: '1856363662', label: 'Jan 2026' },
+  { gid: '677415911', label: 'Feb 2026' },
+  { gid: '1813443487', label: 'Mar 2026' },
+];
 const UGC_GID = '1635997307';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
@@ -945,17 +953,27 @@ function parseCSVLine(line) {
 
 function parseDate(dateStr) {
   if (!dateStr) return null;
-  const parts = dateStr.split('/');
+  const trimmed = dateStr.trim();
+  const parts = trimmed.split('/');
   if (parts.length < 3) return null;
-  let month = parseInt(parts[0]);
-  let day = parseInt(parts[1]);
+  let a = parseInt(parts[0]);
+  let b = parseInt(parts[1]);
   let year = parseInt(parts[2]);
+  if (isNaN(a) || isNaN(b) || isNaN(year)) return null;
   if (year < 100) year += 2000;
-  return new Date(year, month - 1, day);
+  // Detect DD/MM/YYYY vs MM/DD/YYYY — if first part > 12, it must be the day
+  let month, day;
+  if (a > 12) { day = a; month = b; }
+  else if (b > 12) { month = a; day = b; }
+  else { month = a; day = b; } // ambiguous — assume MM/DD (US format)
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const d = new Date(year, month - 1, day);
+  if (isNaN(d.getTime())) return null;
+  return d;
 }
 
 function getMonthKey(date) {
-  if (!date) return null;
+  if (!date || isNaN(date.getTime())) return null;
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
@@ -1012,14 +1030,16 @@ function parseUGCCSV(csv) {
 
 async function fetchData() {
   try {
-    // Dynamically fetch sheet tabs every time to pick up new months
-    const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
-    if (tabsRes.ok) {
-      const allTabs = await tabsRes.json();
-      // Filter to only month tabs (e.g. "Sep 2025", "Jan 2026") — exclude UGC and other non-month tabs
-      const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
-      SHEET_TABS = allTabs.filter(t => monthPattern.test(t.label.trim()));
-    }
+    // Try dynamic tab detection, but fall back to known tabs if it fails
+    try {
+      const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
+      if (tabsRes.ok) {
+        const allTabs = await tabsRes.json();
+        const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
+        const filtered = allTabs.filter(t => monthPattern.test(t.label.trim()));
+        if (filtered.length > 0) SHEET_TABS = filtered;
+      }
+    } catch(e) { /* use default SHEET_TABS */ }
 
     // Fetch creative calendar tabs + UGC tracker in parallel
     const calendarFetches = SHEET_TABS.map(async (tab) => {
@@ -1072,9 +1092,12 @@ async function fetchData() {
       row._completionDate = parseDate(row['COMPLETION DATE']);
     });
 
-    // Get available months
+    // Get available months — only valid YYYY-MM keys
     const monthSet = new Set();
-    allData.forEach(row => { if (row._monthKey) monthSet.add(row._monthKey); });
+    const validMonthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
+    allData.forEach(row => {
+      if (row._monthKey && validMonthPattern.test(row._monthKey)) monthSet.add(row._monthKey);
+    });
     availableMonths = Array.from(monthSet).sort();
 
     if (!currentMonth && availableMonths.length > 0) {
