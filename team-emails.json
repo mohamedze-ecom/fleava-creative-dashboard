@@ -1,0 +1,22 @@
+{
+  "_comment": "Map each person's name (exactly as it appears in the Google Sheet's 'Creative Strategist' or 'Designer/Editor' columns) to the email that receives their daily 9 AM ET report. Use a string for one address, an array for multiple. People with empty emails are silently skipped.",
+  "_dashboardUrl": "https://fleava-creative-dashboard.vercel.app",
+  "strategists": {
+    "Tysin": "tysin@fleava.shop",
+    "Marco": "Marco.damiani2002@gmail.com",
+    "Mohamed": "mohamedmaz753@gmail.com",
+    "Nick": "nicktaylor@fleava.shop"
+  },
+  "editors": {
+    "Kashif": "kashifvideoads1@gmail.com",
+    "Rami": "ramisleem1@gmail.com",
+    "Sourav": "souravbhuiya500@gmail.com",
+    "Galih": "muktico.design@gmail.com",
+    "Joanna": ["joannavalenton20@gmail.com", "joannaworkonly@gmail.com"],
+    "July": "julymarcantojos.contact@gmail.com",
+    "Jeth": "jethroquerubin7@gmail.com",
+    "Ahmed": "",
+    "Zonel": "",
+    "Sufyan": ""
+  }
+}

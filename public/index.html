@@ -756,6 +756,272 @@
     box-shadow: 0 2px 8px rgba(99,102,241,0.3);
   }
 
+  /* ── Ready Briefs Section ── */
+  .ready-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .ready-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ready-title-badge {
+    display: inline-flex;
+    align-items: center;
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .ready-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+
+  .ready-filter-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .ready-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .ready-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+
+  .ready-stat-val {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--blue);
+  }
+
+  .ready-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+  }
+
+  .ready-month-group {
+    margin-bottom: 32px;
+  }
+
+  .ready-month-heading {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ready-month-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .ready-month-count {
+    font-size: 11px;
+    color: var(--blue);
+    background: var(--blue-bg);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-weight: 700;
+  }
+
+  .ready-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+
+  .ready-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s;
+    border-left: 3px solid var(--blue);
+    position: relative;
+  }
+
+  .ready-card:hover {
+    border-color: var(--blue);
+    border-left-color: var(--blue);
+    background: var(--surface-2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .ready-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .ready-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ready-card-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ready-card-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .ready-card-row-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .ready-card-links {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .ready-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .ready-link-btn.brief {
+    background: rgba(99,102,241,0.1);
+    color: #818cf8;
+    border-color: rgba(99,102,241,0.2);
+  }
+
+  .ready-link-btn.brief:hover {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.4);
+  }
+
+  .ready-link-btn.drive {
+    background: rgba(59,130,246,0.1);
+    color: var(--blue);
+    border-color: rgba(59,130,246,0.2);
+  }
+
+  .ready-link-btn.drive:hover {
+    background: rgba(59,130,246,0.2);
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  .ready-empty {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text-muted);
+  }
+
+  .ready-empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .ready-empty-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .type-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .type-pill.video { background: rgba(99,102,241,0.12); color: #818cf8; }
+  .type-pill.static { background: rgba(6,182,212,0.12); color: var(--cyan); }
+  .type-pill.other { background: var(--surface-3); color: var(--text-muted); }
+
+  .avatar-mini {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .ready-grid { grid-template-columns: 1fr; }
+    .ready-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* UGC specific */
   .ugc-card {
     background: var(--surface);
@@ -818,6 +1084,7 @@
     <div class="top-nav">
       <button class="top-nav-btn active" id="navCalendar" onclick="switchSection('calendar')">Creative Calendar</button>
       <button class="top-nav-btn" id="navUGC" onclick="switchSection('ugc')">UGC Tracker</button>
+      <button class="top-nav-btn" id="navReady" onclick="switchSection('ready')">Ready Briefs <span id="ready-count-badge" style="display:none;background:var(--blue);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;vertical-align:middle;"></span></button>
       <a href="/analytics.html" class="top-nav-btn" style="text-decoration:none;">Analytics</a>
     </div>
     <div class="live-badge">
@@ -840,6 +1107,8 @@
 
 <script>
 const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
+// Fallback list — overridden at runtime by /api/sheet-tabs so newly added
+// month tabs in the Google Sheet show up automatically without a redeploy.
 let SHEET_TABS = [
   { gid: '0', label: 'Sep 2025' },
   { gid: '1961556020', label: 'Oct 2025' },
@@ -848,6 +1117,8 @@ let SHEET_TABS = [
   { gid: '1856363662', label: 'Jan 2026' },
   { gid: '677415911', label: 'Feb 2026' },
   { gid: '1813443487', label: 'Mar 2026' },
+  { gid: '1983517648', label: 'Apr 2026' },
+  { gid: '50879143',   label: 'May 2026' },
 ];
 const UGC_GID = '1635997307';
 const REFRESH_INTERVAL = 30000; // 30 seconds
@@ -1030,13 +1301,32 @@ function parseUGCCSV(csv) {
 
 async function fetchData() {
   try {
-    // Try dynamic tab detection, but fall back to known tabs if it fails
+    // Try dynamic tab detection so newly added month tabs auto-appear.
+    // Fall back to the hardcoded SHEET_TABS if anything goes wrong.
     try {
       const tabsRes = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
       if (tabsRes.ok) {
         const allTabs = await tabsRes.json();
-        const monthPattern = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/i;
-        const filtered = allTabs.filter(t => monthPattern.test(t.label.trim()));
+        // Match both short ("Jan 2026") and full ("January 2026") month labels.
+        const monthPattern = /^(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(t(ember)?)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\s+\d{2,4}$/i;
+        const monthOrder = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+        const filtered = allTabs
+          .filter(t => monthPattern.test((t.label || '').trim()))
+          .map(t => {
+            const parts = t.label.trim().split(/\s+/);
+            const short = parts[0].substring(0, 3);
+            const shortCap = short.charAt(0).toUpperCase() + short.slice(1).toLowerCase();
+            const yr = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+            return { gid: String(t.gid), label: `${shortCap} ${yr}` };
+          })
+          .sort((a, b) => {
+            const ay = parseInt(a.label.split(' ')[1]);
+            const by = parseInt(b.label.split(' ')[1]);
+            if (ay !== by) return ay - by;
+            const am = monthOrder[a.label.split(' ')[0].toLowerCase()];
+            const bm = monthOrder[b.label.split(' ')[0].toLowerCase()];
+            return am - bm;
+          });
         if (filtered.length > 0) SHEET_TABS = filtered;
       }
     } catch(e) { /* use default SHEET_TABS */ }
@@ -1071,13 +1361,13 @@ async function fetchData() {
 
     // Process calendar dates and months
     allData.forEach(row => {
-      // Try Start Date first, fall back to Date Launched for Sep/Oct which lack Start Date
       row._date = parseDate(row['Start Date']) || parseDate(row['Date Launched']);
-      if (row._date) {
-        row._monthKey = getMonthKey(row._date);
-      } else if (row._tabLabel) {
-        // Derive month from tab label (e.g. "Sep 2025" → "2025-09")
+      // Always use the sheet tab to determine which month a brief belongs to.
+      // Date Launched can be months later and would wrongly assign briefs to future months.
+      if (row._tabLabel) {
         row._monthKey = monthKeyFromTabLabel(row._tabLabel);
+      } else if (row._date) {
+        row._monthKey = getMonthKey(row._date);
       } else {
         row._monthKey = null;
       }
@@ -1092,11 +1382,18 @@ async function fetchData() {
       row._completionDate = parseDate(row['COMPLETION DATE']);
     });
 
-    // Get available months — only valid YYYY-MM keys
+    // Get available months — only valid YYYY-MM keys.
+    // Include every discovered SHEET_TABS month (even empty ones) so a newly
+    // added month tab in the Google Sheet shows up as a chip immediately,
+    // before any briefs have been added to it.
     const monthSet = new Set();
     const validMonthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
     allData.forEach(row => {
       if (row._monthKey && validMonthPattern.test(row._monthKey)) monthSet.add(row._monthKey);
+    });
+    SHEET_TABS.forEach(tab => {
+      const k = monthKeyFromTabLabel(tab.label);
+      if (k && validMonthPattern.test(k)) monthSet.add(k);
     });
     availableMonths = Array.from(monthSet).sort();
 
@@ -1106,6 +1403,14 @@ async function fetchData() {
 
     document.getElementById('lastUpdated').textContent =
       `Updated ${new Date().toLocaleTimeString()}`;
+
+    // Update the Ready Briefs count badge in the nav
+    const readyCount = allData.filter(r => normalizeStatus(r['Status']) === 'ready').length;
+    const badge = document.getElementById('ready-count-badge');
+    if (badge) {
+      badge.textContent = readyCount;
+      badge.style.display = readyCount > 0 ? 'inline' : 'none';
+    }
 
     render();
   } catch (err) {
@@ -1160,12 +1465,17 @@ function switchSection(section) {
   currentSection = section;
   document.getElementById('navCalendar').classList.toggle('active', section === 'calendar');
   document.getElementById('navUGC').classList.toggle('active', section === 'ugc');
+  document.getElementById('navReady').classList.toggle('active', section === 'ready');
   render();
 }
 
 function render() {
   if (currentSection === 'ugc') {
     renderUGCDashboard();
+    return;
+  }
+  if (currentSection === 'ready') {
+    renderReadyBriefs();
     return;
   }
   const data = getFilteredData();
@@ -1565,6 +1875,167 @@ function setFilter(type, value) {
 function setView(view) {
   currentView = view;
   render();
+}
+
+// ============= READY BRIEFS =============
+
+let readyFilterStrategist = 'all';
+let readyFilterMonth = 'all';
+let readyFilterType = 'all';
+
+function renderReadyBriefs() {
+  // All ready briefs across all months
+  let readyAll = allData.filter(r => normalizeStatus(r['Status']) === 'ready');
+
+  // Build filter options from full set
+  const allStrategists = [...new Set(readyAll.map(r => r['Creative Strategist']).filter(Boolean))].sort();
+  const allMonthKeys  = [...new Set(readyAll.map(r => r._monthKey).filter(Boolean))].sort().reverse();
+  const allTypes      = [...new Set(readyAll.map(r => (r['Type'] || '').trim()).filter(Boolean))].sort();
+
+  // Apply filters
+  let data = readyAll;
+  if (readyFilterStrategist !== 'all') data = data.filter(r => r['Creative Strategist'] === readyFilterStrategist);
+  if (readyFilterMonth !== 'all')      data = data.filter(r => r._monthKey === readyFilterMonth);
+  if (readyFilterType !== 'all')       data = data.filter(r => (r['Type'] || '').toLowerCase() === readyFilterType.toLowerCase());
+
+  // Stats
+  const total   = data.length;
+  const videos  = data.filter(r => (r['Type'] || '').toLowerCase() === 'video').length;
+  const statics = data.filter(r => (r['Type'] || '').toLowerCase() === 'static').length;
+  const withLink = data.filter(r => (r['Frame/Drive Link'] || '').startsWith('http')).length;
+
+  // Group by Landing Page (default to "PDP" when missing)
+  const byLP = {};
+  data.forEach(r => {
+    const lp = (r['Landing Page'] || '').trim() || 'PDP';
+    if (!byLP[lp]) byLP[lp] = [];
+    byLP[lp].push(r);
+  });
+  // Sort: PDP first, then by count desc, then alphabetical
+  const sortedLPs = Object.keys(byLP).sort((a, b) => {
+    if (a === 'PDP' && b !== 'PDP') return -1;
+    if (b === 'PDP' && a !== 'PDP') return 1;
+    const diff = byLP[b].length - byLP[a].length;
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <!-- Header -->
+    <div class="ready-header">
+      <div class="ready-title">
+        Ready Briefs
+        <span class="ready-title-badge">${total} ready</span>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="ready-filters">
+      <span class="ready-filter-label">Strategist</span>
+      <select class="filter-select" onchange="readyFilterStrategist=this.value;renderReadyBriefs()">
+        <option value="all">All Strategists</option>
+        ${allStrategists.map(s => `<option value="${s}" ${readyFilterStrategist === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+
+      <span class="ready-filter-label" style="margin-left:8px;">Month</span>
+      <select class="filter-select" onchange="readyFilterMonth=this.value;renderReadyBriefs()">
+        <option value="all">All Months</option>
+        ${allMonthKeys.map(k => `<option value="${k}" ${readyFilterMonth === k ? 'selected' : ''}>${getMonthLabel(k)}</option>`).join('')}
+      </select>
+
+      <span class="ready-filter-label" style="margin-left:8px;">Type</span>
+      <select class="filter-select" onchange="readyFilterType=this.value;renderReadyBriefs()">
+        <option value="all">All Types</option>
+        ${allTypes.map(t => `<option value="${t}" ${readyFilterType === t ? 'selected' : ''}>${t}</option>`).join('')}
+      </select>
+    </div>
+
+    <!-- Stats -->
+    <div class="ready-stats">
+      <div class="ready-stat">
+        <div class="ready-stat-val" style="color:var(--blue);">${total}</div>
+        <div class="ready-stat-label">Total Ready</div>
+      </div>
+      <div class="ready-stat">
+        <div class="ready-stat-val" style="color:#818cf8;">${videos}</div>
+        <div class="ready-stat-label">Videos</div>
+      </div>
+      <div class="ready-stat">
+        <div class="ready-stat-val" style="color:var(--cyan);">${statics}</div>
+        <div class="ready-stat-label">Static</div>
+      </div>
+      <div class="ready-stat">
+        <div class="ready-stat-val" style="color:var(--green);">${withLink}</div>
+        <div class="ready-stat-label">Have Drive Link</div>
+      </div>
+    </div>
+
+    <!-- Cards grouped by month -->
+    ${total === 0 ? `
+      <div class="ready-empty">
+        <div class="ready-empty-icon">✓</div>
+        <div class="ready-empty-text">No ready briefs match your filters.</div>
+      </div>
+    ` : sortedLPs.map(lp => {
+      const rows = byLP[lp];
+      return `
+        <div class="ready-month-group">
+          <div class="ready-month-heading">
+            ${lp}
+            <span class="ready-month-count">${rows.length}</span>
+          </div>
+          <div class="ready-grid">
+            ${rows.map(r => {
+              const strategist = r['Creative Strategist'] || '—';
+              const editor     = r['Designer/Editor'] || '—';
+              const type       = (r['Type'] || '').toLowerCase();
+              const adName     = r['Ad Name'] || '—';
+              const startDate  = r['Start Date'] || '—';
+              const monthLabel = r._monthKey ? getMonthLabel(r._monthKey) : '—';
+              const briefLink  = (r['Breif Link'] || r['Brief Link'] || '');
+              const driveLink  = (r['Frame/Drive Link'] || '');
+              const color      = AVATAR_COLORS[strategist] || '#64748b';
+              const initial    = strategist !== '—' ? strategist[0].toUpperCase() : '?';
+              const typeClass  = type === 'video' ? 'video' : type === 'static' ? 'static' : 'other';
+              const typeLabel  = r['Type'] || '—';
+
+              const links = [
+                briefLink.startsWith('http') ? `<a href="${briefLink}" target="_blank" class="ready-link-btn brief">↗ Brief</a>` : '',
+                driveLink.startsWith('http') ? `<a href="${driveLink}" target="_blank" class="ready-link-btn drive">↗ Drive</a>`  : '',
+              ].filter(Boolean).join('');
+
+              return `
+                <div class="ready-card" style="border-left-color:${color}40;--card-color:${color};">
+                  <div class="ready-card-top">
+                    <div class="ready-card-name">${adName}</div>
+                    <span class="type-pill ${typeClass}">${typeLabel}</span>
+                  </div>
+                  <div class="ready-card-row">
+                    <span class="ready-card-row-label">Strategist</span>
+                    <span class="avatar-mini" style="background:${color}20;color:${color};">${initial}</span>
+                    <span>${strategist}</span>
+                  </div>
+                  <div class="ready-card-row">
+                    <span class="ready-card-row-label">Editor</span>
+                    <span>${editor}</span>
+                  </div>
+                  <div class="ready-card-row">
+                    <span class="ready-card-row-label">Month</span>
+                    <span>${monthLabel}</span>
+                  </div>
+                  <div class="ready-card-row">
+                    <span class="ready-card-row-label">Date</span>
+                    <span>${startDate}</span>
+                  </div>
+                  ${links ? `<div class="ready-card-links">${links}</div>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
 }
 
 // ============= UGC TRACKER =============

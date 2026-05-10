@@ -204,6 +204,70 @@
       color: #b4a9f8;
     }
 
+    /* ── Date Range Picker ── */
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 0 24px 20px;
+    }
+
+    .date-range-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    .date-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 14px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      color-scheme: dark;
+    }
+
+    .date-input:focus { border-color: var(--accent); }
+    .date-input:hover { border-color: var(--border-hover); }
+
+    .date-range-sep {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .date-reset-btn {
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .date-reset-btn:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .date-range-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
     /* ── Charts ── */
     .charts-grid {
       display: grid;
@@ -470,6 +534,16 @@
       </div>
     </div>
 
+    <!-- Date Range Picker -->
+    <div class="date-range">
+      <span class="date-range-label">Date Range</span>
+      <input type="date" class="date-input" id="date-start">
+      <span class="date-range-sep">→</span>
+      <input type="date" class="date-input" id="date-end">
+      <button class="date-reset-btn" id="date-reset">Reset</button>
+      <span class="date-range-info" id="date-range-info"></span>
+    </div>
+
     <!-- Chart: Creatives Per Person -->
     <div class="controls">
       <h2 class="section-title">Creatives Added Per Person</h2>
@@ -551,7 +625,52 @@
 
   <script>
     const SHEET_ID = '1R-j-eYjRYCeMnbkEP_yrAdtaRfDFGCmI_hPNdbcvrA0';
-    const GID = '1813443487';
+    // Fallback list — used only if the live tab discovery (/api/sheet-tabs) fails.
+    // The live discovery means newly added month tabs in the Google Sheet show up
+    // automatically without a redeploy.
+    let SHEET_TABS = [
+      { gid: '0', label: 'Sep 2025' },
+      { gid: '1961556020', label: 'Oct 2025' },
+      { gid: '209196095', label: 'Nov 2025' },
+      { gid: '1207919965', label: 'Dec 2025' },
+      { gid: '1856363662', label: 'Jan 2026' },
+      { gid: '677415911', label: 'Feb 2026' },
+      { gid: '1813443487', label: 'Mar 2026' },
+      { gid: '1983517648', label: 'Apr 2026' },
+      { gid: '50879143',   label: 'May 2026' },
+    ];
+    const REFRESH_INTERVAL = 60000; // refresh every 60 seconds
+
+    // Match short ("Jan 2026") and full ("January 2026") month tab labels.
+    const MONTH_PATTERN = /^(Jan(uary)?|Feb(ruary)?|Mar(ch)?|Apr(il)?|May|Jun(e)?|Jul(y)?|Aug(ust)?|Sep(t(ember)?)?|Oct(ober)?|Nov(ember)?|Dec(ember)?)\s+\d{2,4}$/i;
+    const MONTH_ORDER = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+    async function discoverTabs() {
+      try {
+        const res = await fetch(`/api/sheet-tabs?id=${SHEET_ID}&_=${Date.now()}`);
+        if (!res.ok) return null;
+        const all = await res.json();
+        if (!Array.isArray(all)) return null;
+        const filtered = all
+          .filter(t => MONTH_PATTERN.test((t.label || '').trim()))
+          .map(t => {
+            const parts = t.label.trim().split(/\s+/);
+            const short = parts[0].substring(0, 3);
+            const shortCap = short.charAt(0).toUpperCase() + short.slice(1).toLowerCase();
+            const yr = parts[1].length === 2 ? '20' + parts[1] : parts[1];
+            return { gid: String(t.gid), label: `${shortCap} ${yr}` };
+          })
+          .sort((a, b) => {
+            const ay = parseInt(a.label.split(' ')[1]);
+            const by = parseInt(b.label.split(' ')[1]);
+            if (ay !== by) return ay - by;
+            return MONTH_ORDER[a.label.split(' ')[0].toLowerCase()] - MONTH_ORDER[b.label.split(' ')[0].toLowerCase()];
+          });
+        return filtered.length > 0 ? filtered : null;
+      } catch (e) {
+        return null;
+      }
+    }
 
     const COLORS = {
       'Tysin':   '#7c6cf0',
@@ -563,44 +682,97 @@
     };
 
     const EDITOR_COLORS = {
-      'Kashif': '#7c6cf0',
-      'Rami':   '#f59e0b',
-      'Sourav': '#10b981',
-      'Galih':  '#ec4899',
-      'other':  '#5a5a66',
+      'Kashif':  '#7c6cf0',
+      'Rami':    '#f59e0b',
+      'Sourav':  '#10b981',
+      'Galih':   '#ec4899',
+      'Joanna':  '#22d3ee',
+      'July':    '#fb7185',
+      'Jeth':    '#a78bfa',
+      'other':   '#94a3b8',
     };
+
+    // Deterministic color palette used as a fallback so any new editor or
+    // strategist that isn't in the explicit maps still gets a unique, non-grey color.
+    const FALLBACK_PALETTE = [
+      '#06b6d4', '#84cc16', '#f97316', '#8b5cf6', '#14b8a6',
+      '#eab308', '#ef4444', '#3b82f6', '#d946ef', '#22c55e',
+      '#0ea5e9', '#f43f5e', '#a855f7', '#65a30d', '#e11d48',
+    ];
+
+    function hashColor(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) {
+        h = (h * 31 + name.charCodeAt(i)) >>> 0;
+      }
+      return FALLBACK_PALETTE[h % FALLBACK_PALETTE.length];
+    }
+
+    function colorForStrategist(name) {
+      if (COLORS[name]) return COLORS[name];
+      return hashColor(name || 'unknown');
+    }
+
+    function colorForEditor(name) {
+      if (EDITOR_COLORS[name]) return EDITOR_COLORS[name];
+      return hashColor(name || 'unknown');
+    }
 
     let allData = [];
     let personChart = null;
     let videoChart = null;
     let personRange = 'daily';
     let videoRange = 'daily';
+    let dateRangeStart = null; // Date object or null
+    let dateRangeEnd = null;   // Date object or null
+
+    // ── Custom tooltip positioner: offset to the right of cursor ──
+    if (typeof Chart !== 'undefined' && Chart.Tooltip && Chart.Tooltip.positioners) {
+      Chart.Tooltip.positioners.offsetCursor = function(items, eventPosition) {
+        const chart = this.chart;
+        const chartArea = chart.chartArea;
+        const tooltipWidth = (this.width || 180);
+        let x = eventPosition.x + 24;
+        let y = eventPosition.y - 12;
+        // If tooltip would overflow right edge, flip to left of cursor
+        if (x + tooltipWidth > chartArea.right) {
+          x = eventPosition.x - tooltipWidth - 24;
+        }
+        if (y < chartArea.top) y = chartArea.top + 4;
+        return { x, y };
+      };
+    }
 
     // ── Parse CSV ──
     function parseCSV(csv) {
       const lines = csv.split('\n');
-      // Find the header row
+      // Find the header row — different months use different column names
       let headerIdx = -1;
       for (let i = 0; i < Math.min(lines.length, 10); i++) {
-        if (lines[i].includes('Start Date') && lines[i].includes('Type')) {
-          headerIdx = i;
-          break;
-        }
+        const l = lines[i];
+        const matches = ['Status', 'Creative Strategist', 'Designer/Editor', 'Type'].filter(k => l.includes(k));
+        if (matches.length >= 2) { headerIdx = i; break; }
       }
       if (headerIdx === -1) return [];
 
-      const headers = parseCSVLine(lines[headerIdx]);
+      const rawHeaders = parseCSVLine(lines[headerIdx]);
+      // Normalize column names so all months map to the same keys
+      const headers = rawHeaders.map(h => {
+        const t = h.trim();
+        if (t === 'Ad set Name') return 'Ad Name';
+        if (t === 'Iteration') return 'Start Date';
+        return t;
+      });
       const rows = [];
       for (let i = headerIdx + 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         const values = parseCSVLine(line);
-        if (!values[0] && !values[1] && !values[6]) continue; // skip empty rows
         const row = {};
         headers.forEach((h, idx) => {
-          row[h.trim()] = (values[idx] || '').trim();
+          row[h] = (values[idx] || '').trim();
         });
-        if (row['Start Date'] || row['Ad Name']) {
+        if (row['Ad Name'] || row['Status'] || row['Creative Strategist']) {
           rows.push(row);
         }
       }
@@ -640,12 +812,21 @@
     // ── Date helpers ──
     function parseDate(str) {
       if (!str) return null;
-      // Handle M/D/YYYY, M/D/YY, M/D/26 formats
-      const parts = str.split('/');
+      const trimmed = str.trim();
+      const parts = trimmed.split('/');
       if (parts.length !== 3) return null;
-      let [m, d, y] = parts.map(Number);
+      let a = parseInt(parts[0]);
+      let b = parseInt(parts[1]);
+      let y = parseInt(parts[2]);
+      if (isNaN(a) || isNaN(b) || isNaN(y)) return null;
       if (y < 100) y += 2000;
-      const date = new Date(y, m - 1, d);
+      // Detect DD/MM/YYYY vs MM/DD/YYYY
+      let month, day;
+      if (a > 12) { day = a; month = b; }
+      else if (b > 12) { month = a; day = b; }
+      else { month = a; day = b; } // ambiguous — assume MM/DD
+      if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+      const date = new Date(y, month - 1, day);
       return isNaN(date.getTime()) ? null : date;
     }
 
@@ -682,7 +863,7 @@
       const allKeys = new Set();
 
       data.forEach(row => {
-        const date = parseDate(row['Start Date']);
+        const date = row._parsedDate;
         const person = row['Creative Strategist'];
         if (!date || !person) return;
         const key = dateKey(date, range);
@@ -701,13 +882,11 @@
       const allKeys = new Set();
 
       data.forEach(row => {
-        const date = parseDate(row['Start Date']);
+        const date = row._parsedDate;
         const editor = row['Designer/Editor'];
         const type = (row['Type'] || '').toLowerCase();
-        const status = (row['Status'] || '').toLowerCase();
         if (!date || !editor) return;
         if (type !== 'video') return;
-        // Count videos that need editing or are being edited
         const key = dateKey(date, range);
         if (!key) return;
         allKeys.add(key);
@@ -739,6 +918,7 @@
             },
           },
           tooltip: {
+            position: 'offsetCursor',
             backgroundColor: '#1a1a22',
             titleColor: '#ececef',
             bodyColor: '#a0a0ab',
@@ -747,12 +927,24 @@
             padding: 12,
             titleFont: { family: 'Inter', size: 13, weight: 600 },
             bodyFont: { family: 'Inter', size: 12 },
+            footerFont: { family: 'Inter', size: 12, weight: 600 },
+            footerColor: '#ececef',
             cornerRadius: 10,
+            caretSize: 0,
+            itemSort: (a, b) => b.parsed.y - a.parsed.y,
+            filter: (item) => item.parsed.y > 0,
+            callbacks: {
+              footer: (items) => {
+                const total = items.reduce((s, i) => s + (i.parsed.y || 0), 0);
+                return `Total: ${total}`;
+              },
+            },
           },
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+            stacked: true,
+            grid: { display: false, drawBorder: false },
             ticks: {
               color: '#5a5a66',
               font: { family: 'Inter', size: 11 },
@@ -760,43 +952,62 @@
             },
           },
           y: {
+            stacked: true,
             beginAtZero: true,
             grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
             ticks: {
               color: '#5a5a66',
               font: { family: 'Inter', size: 11 },
               stepSize: 1,
+              precision: 0,
             },
           },
         },
       };
     }
 
-    function buildPersonChart() {
-      const { persons, sortedKeys } = aggregateByPerson(allData, personRange);
-      const labels = sortedKeys.map(k => dateLabel(k, personRange));
-      const colorKeys = Object.keys(COLORS);
+    // ── Filter data by selected date range ──
+    function getRangeFilteredData() {
+      if (!dateRangeStart && !dateRangeEnd) return allData;
+      return allData.filter(row => {
+        const d = row._parsedDate;
+        if (!d) return false;
+        if (dateRangeStart && d < dateRangeStart) return false;
+        if (dateRangeEnd && d > dateRangeEnd) return false;
+        return true;
+      });
+    }
 
-      const datasets = Object.entries(persons).map(([name, counts], i) => {
-        const color = COLORS[name] || COLORS['Other'];
+    function buildPersonChart() {
+      const filtered = getRangeFilteredData();
+      const { persons, sortedKeys } = aggregateByPerson(filtered, personRange);
+      const labels = sortedKeys.map(k => dateLabel(k, personRange));
+
+      // Sort strategists by total contribution so largest sits at the bottom of each stack.
+      const entries = Object.entries(persons).sort((a, b) => {
+        const ta = Object.values(a[1]).reduce((s, n) => s + n, 0);
+        const tb = Object.values(b[1]).reduce((s, n) => s + n, 0);
+        return tb - ta;
+      });
+
+      const datasets = entries.map(([name, counts]) => {
+        const color = colorForStrategist(name);
         return {
           label: name,
           data: sortedKeys.map(k => counts[k] || 0),
+          backgroundColor: color,
           borderColor: color,
-          backgroundColor: color + '18',
-          tension: 0.35,
-          fill: false,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointBackgroundColor: color,
-          borderWidth: 2.5,
+          borderWidth: 0,
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'people',
         };
       });
 
       const ctx = document.getElementById('personChart').getContext('2d');
       if (personChart) personChart.destroy();
       personChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: { labels, datasets },
         options: getChartConfig(),
       });
@@ -806,29 +1017,35 @@
     }
 
     function buildVideoChart() {
-      const { editors, sortedKeys } = aggregateVideosEditing(allData, videoRange);
+      const filtered = getRangeFilteredData();
+      const { editors, sortedKeys } = aggregateVideosEditing(filtered, videoRange);
       const labels = sortedKeys.map(k => dateLabel(k, videoRange));
 
-      const datasets = Object.entries(editors).map(([name, counts], i) => {
-        const color = EDITOR_COLORS[name] || EDITOR_COLORS['other'];
+      // Sort editors by total contribution so largest sits at the bottom of each stack.
+      const entries = Object.entries(editors).sort((a, b) => {
+        const ta = Object.values(a[1]).reduce((s, n) => s + n, 0);
+        const tb = Object.values(b[1]).reduce((s, n) => s + n, 0);
+        return tb - ta;
+      });
+
+      const datasets = entries.map(([name, counts]) => {
+        const color = colorForEditor(name);
         return {
           label: name,
           data: sortedKeys.map(k => counts[k] || 0),
+          backgroundColor: color,
           borderColor: color,
-          backgroundColor: color + '18',
-          tension: 0.35,
-          fill: false,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointBackgroundColor: color,
-          borderWidth: 2.5,
+          borderWidth: 0,
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'editors',
         };
       });
 
       const ctx = document.getElementById('videoChart').getContext('2d');
       if (videoChart) videoChart.destroy();
       videoChart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: { labels, datasets },
         options: getChartConfig(),
       });
@@ -962,19 +1179,83 @@
       buildVideoChart();
     });
 
+    // ── Date range handlers ──
+    function updateDateRangeInfo() {
+      const info = document.getElementById('date-range-info');
+      if (!dateRangeStart && !dateRangeEnd) {
+        info.textContent = 'Showing all data';
+        return;
+      }
+      const filtered = getRangeFilteredData();
+      const fmt = d => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      info.textContent = `${filtered.length} creatives between ${fmt(dateRangeStart)} and ${fmt(dateRangeEnd)}`;
+    }
+
+    function onDateRangeChange() {
+      const startStr = document.getElementById('date-start').value;
+      const endStr = document.getElementById('date-end').value;
+      dateRangeStart = startStr ? new Date(startStr + 'T00:00:00') : null;
+      dateRangeEnd = endStr ? new Date(endStr + 'T23:59:59') : null;
+      buildPersonChart();
+      buildVideoChart();
+      updateDateRangeInfo();
+    }
+
+    document.getElementById('date-start').addEventListener('change', onDateRangeChange);
+    document.getElementById('date-end').addEventListener('change', onDateRangeChange);
+    document.getElementById('date-reset').addEventListener('click', () => {
+      document.getElementById('date-start').value = '';
+      document.getElementById('date-end').value = '';
+      dateRangeStart = null;
+      dateRangeEnd = null;
+      buildPersonChart();
+      buildVideoChart();
+      updateDateRangeInfo();
+    });
+
     // ── Filter handlers ──
     document.getElementById('search').addEventListener('input', renderTable);
     document.getElementById('filter-type').addEventListener('change', renderTable);
     document.getElementById('filter-status').addEventListener('change', renderTable);
     document.getElementById('filter-person').addEventListener('change', renderTable);
 
-    // ── Load data ──
+    // ── Load data from ALL tabs ──
+    let filtersPopulated = false;
+
     async function loadData() {
       try {
-        const res = await fetch(`/api/sheet-csv?id=${SHEET_ID}&gid=${GID}`);
-        if (!res.ok) throw new Error('Failed to load sheet');
-        const csv = await res.text();
-        allData = parseCSV(csv);
+        // Auto-discover tabs so newly added month sheets appear without a redeploy.
+        const discovered = await discoverTabs();
+        if (discovered) SHEET_TABS = discovered;
+
+        const fetches = SHEET_TABS.map(async (tab) => {
+          const url = `/api/sheet-csv?id=${SHEET_ID}&gid=${tab.gid}&_=${Date.now()}`;
+          const res = await fetch(url);
+          if (!res.ok) return [];
+          const csv = await res.text();
+          const rows = parseCSV(csv);
+          // Use tab label for date context when Start Date is missing/invalid
+          rows.forEach(r => {
+            r._tabLabel = tab.label;
+            // Try to get a real date; fall back to Date Launched
+            let d = parseDate(r['Start Date']) || parseDate(r['Date Launched']);
+            if (!d) {
+              // Derive from tab label (e.g. "Mar 2026" → 1st of that month)
+              const monthNames = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+              const parts = tab.label.trim().split(/\s+/);
+              if (parts.length >= 2) {
+                const m = monthNames[parts[0].toLowerCase().substring(0,3)];
+                const y = parts[1].length === 2 ? 2000 + parseInt(parts[1]) : parseInt(parts[1]);
+                if (m !== undefined && !isNaN(y)) d = new Date(y, m, 1);
+              }
+            }
+            r._parsedDate = d;
+          });
+          return rows;
+        });
+
+        const results = await Promise.all(fetches);
+        allData = results.flat();
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
@@ -982,7 +1263,11 @@
         updateStats();
         buildPersonChart();
         buildVideoChart();
-        populateFilters();
+        updateDateRangeInfo();
+        if (!filtersPopulated) {
+          populateFilters();
+          filtersPopulated = true;
+        }
         renderTable();
       } catch (err) {
         document.getElementById('loading').innerHTML = `
@@ -996,6 +1281,7 @@
     }
 
     loadData();
+    setInterval(loadData, REFRESH_INTERVAL);
   </script>
 </body>
 </html>
